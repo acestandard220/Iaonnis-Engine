@@ -1,0 +1,62 @@
+# Blender 4.4.3 MTL File: 'Sword1.blend'
+# www.blender.org
+
+newmtl Blade
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ke 100.000000 100.000000 100.000000
+Ni 1.450000
+d 1.000000
+illum 3
+map_Ns C:/Users/User/Downloads/swordInTheStone4_downloadFiles_part2/swordInTheStone4_downloadFiles_part2/textures/scratches.jpg
+
+newmtl Blade_No_Emmisising
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 3
+map_Ns C:/Users/User/Downloads/swordInTheStone4_downloadFiles_part2/swordInTheStone4_downloadFiles_part2/textures/scratches.jpg
+
+newmtl Guard
+Ka 1.000000 1.000000 1.000000
+Kd 0.300000 0.206400 0.120000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 3
+map_Ns -s 0.5 0.5 0.5 C:/Users/User/Downloads/swordInTheStone4_downloadFiles_part2/swordInTheStone4_downloadFiles_part2/textures/scratches.jpg
+
+newmtl Handle
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 1
+map_Kd C:/Users/User/Downloads/swordInTheStone4_downloadFiles_part2/swordInTheStone4_downloadFiles_part2/textures/leatherCord.jpg
+
+newmtl Pom
+Ka 1.000000 1.000000 1.000000
+Kd 0.300000 0.206400 0.120000
+Ks 0.500000 0.500000 0.500000
+Ke 100.000000 100.000000 100.000000
+Ni 1.450000
+d 1.000000
+illum 3
+map_Ns -s 0.5 0.5 0.5 C:/Users/User/Downloads/swordInTheStone4_downloadFiles_part2/swordInTheStone4_downloadFiles_part2/textures/scratches.jpg
+
+newmtl Pom.001
+Ka 1.000000 1.000000 1.000000
+Kd 0.300000 0.206400 0.120000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 3
+map_Ns -s 0.5 0.5 0.5 C:/Users/User/Downloads/swordInTheStone4_downloadFiles_part2/swordInTheStone4_downloadFiles_part2/textures/scratches.jpg

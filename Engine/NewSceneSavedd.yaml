@@ -1,0 +1,82 @@
+Entities:
+  -
+    Active: true
+    MeshFilter:
+      Materials:
+        - 415d1d5b-b186-4a32-a5a7-d5b43618e501
+        - SubCube
+      Names: []
+      UUID: 0fe2f9d7-4237-4612-b7a3-c083b503a6cb
+    Tag: Frank
+    Transform:
+      - Position
+      -
+        - 0.0
+        - 0.0
+        - 0.0
+      - Rotation
+      -
+        - 0.0
+        - 0.0
+        - 0.0
+      - Scale
+      -
+        - 1.0
+        - 1.0
+        - 1.0
+    UUID: 0b6f3111-bd50-4971-a10e-4d00e16b70c4
+  -
+    Active: true
+    MeshFilter:
+      Materials:
+        - 415d1d5b-b186-4a32-a5a7-d5b43618e501
+        - SubCube
+      Names: []
+      UUID: 0fe2f9d7-4237-4612-b7a3-c083b503a6cb
+    Tag: NewCube
+    Transform:
+      - Position
+      -
+        - 2.5
+        - 0.8
+        - 0.0
+      - Rotation
+      -
+        - 0.0
+        - 0.0
+        - 0.0
+      - Scale
+      -
+        - 1.0
+        - 1.0
+        - 1.0
+    UUID: 73b27d6e-e401-4e0d-bf58-ae037145c526
+  -
+    Active: true
+    MeshFilter:
+      Materials:
+        - 415d1d5b-b186-4a32-a5a7-d5b43618e501
+        - SubCube
+      Names: []
+      UUID: 0fe2f9d7-4237-4612-b7a3-c083b503a6cb
+    Tag: NewCube2
+    Transform:
+      - Position
+      -
+        - -3.0
+        - -1.6
+        - 0.0
+      - Rotation
+      -
+        - 0.0
+        - 1.6
+        - 0.0
+      - Scale
+      -
+        - 1.0
+        - 11.4
+        - 1.0
+    UUID: 99cf5715-df71-4a23-8e00-de3a6e53310a
+Name: Scene
+No. Entt: 3
+Resource: []
