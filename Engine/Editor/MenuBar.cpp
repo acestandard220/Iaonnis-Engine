@@ -43,6 +43,12 @@ namespace Iaonnis
 				}
 
 				ImGui::Separator();
+				if (ImGui::MenuItem("Sync"))
+				{
+					editor->getScene()->OnEntityRegisteryModified(); //Todo: Trigger somthing more global
+				}
+
+				ImGui::Separator();
 				if (ImGui::MenuItem("Exit", "Alt + F4"))
 				{
 

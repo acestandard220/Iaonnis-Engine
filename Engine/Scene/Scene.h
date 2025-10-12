@@ -31,6 +31,8 @@ namespace Iaonnis
 			Entity& addCube(const std::string& name);
 			Entity& addPlane(const std::string& name);
 
+			void AssignMaterial(UUID entityID, UUID mtlID, int subMeshIndex);
+
 
 			void removeEntity(Entity entity);
 
@@ -59,7 +61,11 @@ namespace Iaonnis
 			void OnEntityRegisteryModified() { isEntityRegDirty = true; }
 			void setEntityRegisteryClean() { isEntityRegDirty = false; }
 
+			void OnMaterialModified() { isMaterialDirty = true; }
+			void SetMaterialClean() { isMaterialDirty = false; }
+
 			bool isEntityRegisteryDirty()const { return isEntityRegDirty; }
+			bool isMaterialsDirty(void)const { return isMaterialDirty; }
 
 			std::shared_ptr<Camera> GetSceneCamera() { return camera; }
 
@@ -76,6 +82,7 @@ namespace Iaonnis
 
 			std::string name;
 			bool isEntityRegDirty = true;
+			bool isMaterialDirty = true;
 
 			glm::vec2 displaySize;
 			std::shared_ptr<Camera> camera;

@@ -166,7 +166,10 @@ namespace Iaonnis
 		glEnable(GL_DEPTH_TEST);
 		glEnable(GL_FRAMEBUFFER_SRGB);
 
-		
+		//glEnable(GL_CULL_FACE);         // Enable face culling
+		//glCullFace(GL_BACK);            // Cull back faces (default)
+		//glFrontFace(GL_CCW);
+		//
 
 		self = this;
 	}

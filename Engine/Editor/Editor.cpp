@@ -3,7 +3,6 @@
 
 namespace Iaonnis
 {
-
     float a = 0;
     float b[3]{};
 
@@ -64,8 +63,10 @@ namespace Iaonnis
 
         }
 
-        SetBlenderTheme();
+        ImGuiEx::SetBlenderTheme();
         InitializeDefaultPanels();
+
+        GeneralWindow::Initialize(this);
     }
 
     void Iaonnis::Editor::OnUpdate(Renderer3D::RendererStatistics stats, uint32_t r)
@@ -111,12 +112,20 @@ namespace Iaonnis
         }
         style.WindowMinSize.x = originalWindowMinX;
 
-        ImGui::Begin("Debug");
+        ImGui::Begin("Debug", nullptr, ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoResize);
+
+        float contentRegionAvailableX = ImGui::GetContentRegionAvail().x;
 
         ImGui::PushStyleVar(ImGuiStyleVar_SeparatorTextAlign, ImVec2(0.5, 0.5));
         ImGui::SeparatorText("Frame Stats");
-        ImGui::Text("FrameRate: %.1f FPS", io.Framerate);
-        ImGui::Text("Delta Time: %.3f s", io.DeltaTime);
+
+        static float history[100];
+        static int offset = 0;
+        ImGuiEx::PlotLines("Frame Per Second", history, offset, 100, io.Framerate, ImVec2(0, 120), ImVec2(contentRegionAvailableX, 80));
+
+        static float dtHistory[100];
+        static int dtOffset = 0;
+        ImGuiEx::PlotLines("Delta Time(ms)", dtHistory, dtOffset, 100, 1000/io.Framerate, ImVec2(0, 120), ImVec2(contentRegionAvailableX, 80));
 
         ImGui::SeparatorText("Rendering");
         ImGui::Text("Draw Calls: %d", stats.nDrawCalls);
@@ -133,6 +142,10 @@ namespace Iaonnis
         ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
 
         ImGui::PopStyleVar(1);
+
+      
+
+
         ImGui::End();
 
         menubar->OnUpdate();

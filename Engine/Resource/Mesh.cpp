@@ -32,6 +32,12 @@ namespace Iaonnis
 		type = ResourceType::Mesh;
 	}
 
+    Mesh::Mesh(const Mesh& other)
+        :vertices(other.vertices), indices(other.indices), subMeshes(other.subMeshes)
+    {
+        refCount = 0;
+    }
+
 	void Mesh::load(filespace::filepath path)
 	{
         const std::string extension = path.extension().string();
@@ -77,6 +83,17 @@ namespace Iaonnis
     const std::vector<uint32_t>& Mesh::getIndices() const
     {
         return indices;
+    }
+
+    SubMeshTexturePaths& Mesh::GetFileTexturePaths(int index)
+    {
+        if (index > texturePaths.size())
+        {
+            IAONNIS_LOG_ERROR("Invalid submesh index");
+            return texturePaths[0];
+        }
+
+        return texturePaths[index];
     }
 
     void Mesh::generateCube(Mesh* mesh)
@@ -334,6 +351,18 @@ namespace Iaonnis
         }
 
         generateTangentBitangent();
+
+        for (auto& material : materials)
+        {
+            SubMeshTexturePaths subMeshTexture;
+            subMeshTexture.diffuseMap = material.diffuse_texname;
+            subMeshTexture.normalMap = material.bump_texname;
+            subMeshTexture.aoMap = material.ambient_texname;
+            subMeshTexture.roughnessMap = material.specular_highlight_texname;
+            subMeshTexture.metallicMap = material.metallic_texname;
+
+            texturePaths.push_back(subMeshTexture);
+        }
 
         IAONNIS_LOG_INFO("[TinyObj]: Loaded model with %d Sub Meshes, %d Vertices, %d Materials.",
             shapes.size(), vertices.size(), materials.size());

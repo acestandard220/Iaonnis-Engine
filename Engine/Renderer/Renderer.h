@@ -31,12 +31,16 @@ namespace Iaonnis
 
 			DirectionalLight = 4,
 			SpotLight = 5,
-			PointLight = 6
+			PointLight = 6,
+
+			AO = 7, 
+			Metallic = 8,
+			Roughness = 9
 		};
 
 		enum class gBufferHandles
 		{
-			Albedo,Position,Normal,Depth
+			Albedo,Position,Normal,AO,Roughness,Metallic,Depth
 		};
 
 		struct DrawData
@@ -54,6 +58,7 @@ namespace Iaonnis
 		void EnvironmentPass(Scene* scene);
 
 		void UploadScene(Scene* scene);
+		void UploadSceneNoBatching(Scene* scene);
 		void UploadMaterials();
 
 		void UploadLightData(Scene* scene);

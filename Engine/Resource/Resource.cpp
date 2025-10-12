@@ -2,7 +2,7 @@
 
 namespace Iaonnis
 {
-	const UUID& Resource::getID() const
+	const UUID& Iaonnis::Resource::GetID() const
 	{
 		return id;
 	}

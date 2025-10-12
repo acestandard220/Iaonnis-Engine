@@ -14,7 +14,12 @@ namespace Iaonnis
 	{
 		Folder,
 		File,
-		Plus
+		Plus,
+		Duplicate,
+		Remove,
+		New,
+		Open
+
 	};
 
 	class ResourceCache
@@ -22,6 +27,24 @@ namespace Iaonnis
 	public:
 		ResourceCache();
 		~ResourceCache();
+
+		template<class T>
+		filespace::filepath GenerateDuplicateResourceName(filespace::filepath path)
+		{
+			std::filesystem::path parentDirectory = path.parent_path();
+			std::string extension = path.extension().string();
+			std::string fileName = path.stem().string();
+			std::filesystem::path newPath = path;
+
+			size_t count = 1;
+			while (getByPath<T>(newPath) != nullptr)
+			{
+				std::string newName = fileName + "(" + std::to_string(count) + ")" + extension;
+				newPath = parentDirectory / newName;
+				count++;
+			}
+			return newPath;
+		}
 
 		template<class T>
 		std::shared_ptr<T> getByPath(filespace::filepath path)
@@ -108,6 +131,23 @@ namespace Iaonnis
 		}
 
 		template<class T>
+		std::shared_ptr<T> duplicate(UUID originalResourceID)
+		{
+			std::shared_ptr<T> existing = getByUUID<T>(originalResourceID);
+			if (!existing)
+			{
+				IAONNIS_LOG_ERROR("Invalid resource id. (UUID = %s)", UUIDFactory::uuidToString(originalResourceID).c_str());
+				return nullptr;
+			}
+
+			filespace::filepath newPath = GenerateDuplicateResourceName<T>(existing->getPath());
+
+			std::shared_ptr<T> newResource = std::make_shared<T>(*existing.get());
+			cache<T>(newPath, newResource);
+			return newResource;
+		}
+
+		template<class T>
 		void save(const std::string& name, filespace::filepath path)
 		{
 			std::shared_ptr<T> existing = getByPath<T>(path);
@@ -151,10 +191,12 @@ namespace Iaonnis
 			resource->unuse();
 		}
 
-		std::shared_ptr<Material> getDefaultMaterial();
+		std::shared_ptr<Material> CreateNewMaterial();
+
+		static std::shared_ptr<Material> getDefaultMaterial();
 		std::shared_ptr<ImageTexture> GetDefaultDiffuse();
 		std::shared_ptr<ImageTexture> GetDefaultNormal();
-		std::shared_ptr<Material> GetRockMaterial();
+		std::shared_ptr<ImageTexture> GetDefaultByTextureType(TextureMapType type);
 
 		static std::shared_ptr<ImageTexture> GetIcon(IconType iconType);
 

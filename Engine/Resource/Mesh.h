@@ -6,6 +6,15 @@
 
 namespace Iaonnis
 {
+	struct SubMeshTexturePaths
+	{
+		filespace::filepath diffuseMap;
+		filespace::filepath normalMap;
+		filespace::filepath aoMap;
+		filespace::filepath roughnessMap;
+		filespace::filepath metallicMap;
+	};
+
 	struct Vertice
 	{
 		glm::vec3 p;
@@ -32,6 +41,7 @@ namespace Iaonnis
 	{
 		public:
 			Mesh();
+			Mesh(const Mesh& other);
 			~Mesh() = default;
 
 			virtual void load(filespace::filepath path)override;
@@ -45,6 +55,8 @@ namespace Iaonnis
 
 			const std::vector<Vertice>& getVertices()const;
 			const std::vector<uint32_t>& getIndices()const;
+
+			SubMeshTexturePaths& GetFileTexturePaths(int index);
 
 			static void generateCube(Mesh* mesh);
 			static void generatePlane(Mesh* mesh);
@@ -63,6 +75,8 @@ namespace Iaonnis
 			std::vector<Vertice> vertices;
 			std::vector<uint32_t> indices;
 			std::vector<SubMesh> subMeshes;
+
+			std::vector<SubMeshTexturePaths> texturePaths;
 	};
 
 }

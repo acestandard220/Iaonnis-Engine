@@ -61,7 +61,8 @@ namespace Iaonnis
 	{
 		UUID meshID;
 
-		std::vector<UUID> materialID;
+		//std::vector<UUID> materialID;
+		std::unordered_map<UUID, std::list<int>> materialIDMap;
 		std::vector<std::string> names;
 
 		MeshFilterComponent() = default;

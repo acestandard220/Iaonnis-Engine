@@ -23,7 +23,8 @@ namespace Iaonnis
 		virtual void load(filespace::filepath path) = 0;
 		virtual void save(filespace::filepath path) = 0;
 
-		const UUID& getID()const;
+		UUID& GetID(){ return id; }
+		const UUID& GetID()const;
 		const std::string& getName()const;
 		const filespace::filepath& getPath()const;
 		ResourceType getType()const;

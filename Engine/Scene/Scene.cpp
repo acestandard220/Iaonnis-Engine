@@ -12,20 +12,43 @@ namespace Iaonnis
         camera = std::make_shared<Camera>("Main Camera", glm::vec3(3.0f, 3.0f, 8.0f), displaySize.x, displaySize.y);
         environment = cache->load<Environment>("Assets/Environment Maps/Skybox/skybox.txt");
 
-        auto cubeEntity = addCube("Cube");
-        addDirectionalLight(glm::vec3(1.0f, 2.0f, 1.0f));
+        auto cubeEntity = addCube("Cube1");
+        //addMesh("Assets/obj_sphere.obj", "Sphere");
+        //addDirectionalLight(glm::vec3(1.0f, 2.0f, 1.0f));
+        addPointLight();
 
-        auto grayRockDiff = cache->load<ImageTexture>("Assets\\Textures\\Gray Rocks\\GrayRocksDiff_2k.png");
-        auto grayRockNorm = cache->load<ImageTexture>("Assets\\Textures\\Gray Rocks\\GrayRocksNorGl_2k.png");
+        //auto grayRockDiff = cache->load<ImageTexture>("Assets\\Textures\\Gray Rocks\\GrayRocksDiff_2k.png");
+        //auto grayRockNorm = cache->load<ImageTexture>("Assets\\Textures\\Gray Rocks\\GrayRocksNorGl_2k.png");
+        //auto grayRockAo   = cache->load<ImageTexture>("Assets\\Textures\\Gray Rocks\\GrayRocksAO_2K.png");
+        //auto grayRockRough = cache->load<ImageTexture>("Assets/Textures/Gray Rocks/GrayRocksRough_2k.png");
+        //auto grayRockMetallic = cache->load<ImageTexture>("Assets/Textures/default_metallic.png");
+        //
+        //auto grayRockMtl = cache->create<Material>("Gray Rock Material.yaml");
+        //grayRockMtl->setDiffuseMap(grayRockDiff->GetID());
+        //grayRockMtl->setNormalMap(grayRockNorm->GetID());
+        //grayRockMtl->setAoMap(grayRockAo->GetID());
+        //grayRockMtl->setRoughnessMap(grayRockRough->GetID());
+        //grayRockMtl->setMetallicMap(grayRockMetallic->GetID());
 
-        auto grayRockMtl = cache->create<Material>("Gray Rock Material.yaml");
-        grayRockMtl->setDiffuseMap(grayRockDiff->getID());
-        grayRockMtl->setNormalMap(grayRockNorm->getID());
+        auto rustyMetalDiff = cache->load<ImageTexture>("Assets/Textures/Rusty Metal_4k/diff.png");
+        auto rustyMetalNorm = cache->load<ImageTexture>("Assets/Textures/Rusty Metal_4k/normal.png");
+        auto rustyMetalAo = cache->load<ImageTexture>("Assets/Textures/Rusty Metal_4k/ao.png");
+        auto rustyMetalRough = cache->load<ImageTexture>("Assets/Textures/Rusty Metal_4k/roughness.png");
+        auto rustyMetalMetallic = cache->load<ImageTexture>("Assets/Textures/Rusty Metal_4k/metallic.png");
+        
+        auto rustyMetalMtl = cache->create<Material>("Rusty Metal.yaml");
+        rustyMetalMtl;
+        rustyMetalMtl->setDiffuseMap(rustyMetalDiff->GetID());
+        rustyMetalMtl->setNormalMap(rustyMetalNorm->GetID());
+        rustyMetalMtl->setAoMap(rustyMetalAo->GetID());
+        rustyMetalMtl->setRoughnessMap(rustyMetalRough->GetID());
+        rustyMetalMtl->setMetallicMap(rustyMetalMetallic->GetID());
 
-        cubeEntity.GetComponent<MeshFilterComponent>().materialID[0] = grayRockMtl->getID();
+        cubeEntity.AssignMaterial(rustyMetalMtl->GetID(), 0);
+        
 
-        auto lordMartin = cache->load<ImageTexture>("Assets/Textures/Image.jpg"); //Temp//
-
+        //addMesh("Assets/Models/Lion_Head_4k/LionHead.obj","BackPack");
+        addMesh("Assets/backpack.obj","BackPack");
 
         //Systems Init()
         systems.emplace_back(std::make_unique<TransformSystem>(&registry));
@@ -74,20 +97,22 @@ namespace Iaonnis
     Entity& Scene::addMesh(filespace::filepath path, const std::string& name)
     {
         std::shared_ptr<Mesh> meshResource = cache->load<Mesh>(path);
-        //meshResource->save("Cube.mesh");
         int subMeshCount = meshResource->getSubMeshCount();
-        UUID defaultMaterialID = cache->getDefaultMaterial()->getID();
+        UUID defaultMaterialID = cache->getDefaultMaterial()->GetID();
 
         Entity& entity = createEntity(meshResource->getName());
-        auto& meshFilterComp = entity.AddComponent<MeshFilterComponent>(meshResource->getID());
-        meshFilterComp.materialID.resize(subMeshCount);
+        auto& meshFilterComp = entity.AddComponent<MeshFilterComponent>(meshResource->GetID());
         meshFilterComp.names.resize(subMeshCount);
         
         for (int i = 0; i < subMeshCount; i++)
         {
-            meshFilterComp.materialID[i] = defaultMaterialID;
+            entity.AssignMaterial(defaultMaterialID, i);
             meshFilterComp.names[i] = meshResource->getSubMesh(i)->name;
-        }     
+            cache->use<Material>(defaultMaterialID);
+        }
+
+
+
         return entity;
     }
 
@@ -95,18 +120,17 @@ namespace Iaonnis
     {
         std::shared_ptr<Mesh> meshResource = cache->getByUUID<Mesh>(meshID);
         int subMeshCount = meshResource->getSubMeshCount();
-        UUID defaultMaterialID = cache->getDefaultMaterial()->getID();
+        UUID defaultMaterialID = cache->getDefaultMaterial()->GetID();
 
         Entity& entity = createEntity(meshResource->getName());
-        auto& meshFilterComp = entity.AddComponent<MeshFilterComponent>(meshResource->getID());
-        meshFilterComp.materialID.resize(subMeshCount);
+        auto& meshFilterComp = entity.AddComponent<MeshFilterComponent>(meshResource->GetID());
         meshFilterComp.names.resize(subMeshCount);
 
         for (int i = 0; i < subMeshCount; i++)
         {
-            meshFilterComp.materialID[i] = defaultMaterialID;
-            cache->use<Material>(defaultMaterialID);
+            entity.AssignMaterial(defaultMaterialID, i);
             meshFilterComp.names[i] = meshResource->getSubMesh(i)->name;
+            cache->use<Material>(defaultMaterialID);
         }
         return entity;
     }
@@ -143,7 +167,7 @@ namespace Iaonnis
         auto& lightComp = entity.AddComponent<LightComponent>();
         lightComp.color = glm::vec4(0.8f, 0.6f, 0.6f, 1.0f);
         lightComp.type = LightType::Point;
-        lightComp.position = glm::vec3(0.0f, 2.5f, 2.5f);
+        lightComp.position = glm::vec3(0.0f, 1.5f, 1.5f);
 
         return entity;
     }
@@ -161,15 +185,14 @@ namespace Iaonnis
     Entity& Scene::addCube(const std::string& name)
     {
         auto meshResource = cache->getByName<Mesh>("Cube");
-        UUID defaultMtlID = cache->getDefaultMaterial()->getID();
+        UUID defaultMtlID = cache->getDefaultMaterial()->GetID();
 
         Entity& entity = createEntity(name);
-        auto& meshFilterComp = entity.AddComponent<MeshFilterComponent>(meshResource->getID());
+        auto& meshFilterComp = entity.AddComponent<MeshFilterComponent>(meshResource->GetID());
 
-        meshFilterComp.materialID.resize(1);
         meshFilterComp.names.resize(1);
 
-        meshFilterComp.materialID[0] = defaultMtlID;
+        entity.AssignMaterial(defaultMtlID, 0);
         meshFilterComp.names[0] = "Sub" + meshResource->getSubMesh(0)->name;
 
         cache->use<Material>(defaultMtlID);
@@ -179,18 +202,46 @@ namespace Iaonnis
     Entity& Scene::addPlane(const std::string& name)
     {
         auto meshResource = cache->getByName<Mesh>("Plane");
-        UUID defaultMtlID = cache->getDefaultMaterial()->getID();;
+        UUID defaultMtlID = cache->getDefaultMaterial()->GetID();;
 
         Entity& entity = createEntity(name);
-        auto& meshFilterComp = entity.AddComponent<MeshFilterComponent>(cache->getByName<Mesh>("Plane")->getID());
-        meshFilterComp.materialID.resize(1);
+        auto& meshFilterComp = entity.AddComponent<MeshFilterComponent>(cache->getByName<Mesh>("Plane")->GetID());
         meshFilterComp.names.resize(1);
 
-        meshFilterComp.materialID[0] = cache->GetRockMaterial()->getID();
+        entity.AssignMaterial(defaultMtlID, 0);
         meshFilterComp.names[0] = "Sub" + meshResource->getSubMesh(0)->name;
 
         cache->use<Material>(defaultMtlID);
         return entity;
+    }
+
+    //Entity has a fast helper function. Use that instead.
+    void Scene::AssignMaterial(UUID entityID, UUID mtlID, int subMeshIndex)
+    {
+        Entity* entity = nullptr;
+        for (auto entt : entities)
+        {
+            if (entt.GetUUID() == entityID)
+            {
+                entity = &entt;
+                break;
+            }
+        }
+
+        if (entity == nullptr)
+        {
+            IAONNIS_LOG_ERROR("Failed to find entity. (UUID = %s)", UUIDFactory::uuidToString(entityID));
+            return;
+        }
+
+        auto meshFilter = entity->GetComponent<MeshFilterComponent>();
+        auto& materialMap = meshFilter.materialIDMap;
+
+        for (auto& [matID, dependants] : materialMap)
+            dependants.remove(subMeshIndex);
+
+        meshFilter.materialIDMap[mtlID].push_back(subMeshIndex);
+        return;
     }
 
     void Scene::removeEntity(Entity entity)
@@ -257,7 +308,7 @@ namespace Iaonnis
                 }
             };
 
-            if(entt.HasComponent<MeshFilterComponent>())
+            /*if(entt.HasComponent<MeshFilterComponent>())
             {
                 auto& mtlIDs = temp["MeshFilter"].as_map().at("Materials").as_seq();
                 for (auto mtlID : meshFilter.materialID)
@@ -271,7 +322,7 @@ namespace Iaonnis
                     mtlIDs.push_back(name);
                 }
  
-            }
+            }*/
 
 
             

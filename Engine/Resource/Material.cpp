@@ -11,6 +11,17 @@ namespace Iaonnis {
 		normal.normalMap  = UUIDFactory::getInvalidUUID();
 	}
 
+	Material::Material(const Material& other)
+		: uvScale(other.uvScale)
+	{
+		albedo = other.albedo;
+		normal = other.normal;
+		aoMap = other.aoMap;
+		roughnessMap = other.roughnessMap;
+		metallicMap = other.metallicMap;
+		refCount = 0;
+	}
+
 	Material::~Material()
 	{
 	}
@@ -25,7 +36,44 @@ namespace Iaonnis {
 		IAONNIS_LOG_WARN("Not Saving Material Resource");
 	}
 
-	
+	void Iaonnis::Material::SetMap(TextureMapType type, UUID map)
+	{
+		switch (type)
+		{
+			case TextureMapType::Albedo: return setDiffuseMap(map);
+			case TextureMapType::Normal: return setNormalMap(map);
+			case TextureMapType::AO:     return setAoMap(map);
+			case TextureMapType::Roughness:return setRoughnessMap(map);
+			case TextureMapType::Metallic: return setMetallicMap(map);
+		}
+	}
+
+	UUID& Material::GetMap(TextureMapType type)
+	{
+		switch (type)
+		{
+		case TextureMapType::Albedo: return GetDiffuseID();
+		case TextureMapType::Normal: return GetNormalID();
+		case TextureMapType::AO:     return GetAoID();
+		case TextureMapType::Roughness:return GetRoughnessID();
+		case TextureMapType::Metallic: return getMetallicID();
+		}
+	}
+
+	std::string Material::GetMapTypeString(TextureMapType type)
+	{
+		switch (type)
+		{
+			case TextureMapType::Albedo: return "Diffuse";
+			case TextureMapType::Normal: return "Normal";
+			case TextureMapType::AO:     return "Ambient Occlusion";
+			case TextureMapType::Roughness:return "Roughness";
+			case TextureMapType::Metallic: return "Metallic";
+		}
+
+		return "Unknown";
+	}
+
 	void Material::setColor(glm::vec4 color)
 	{
 		albedo.color = color;
@@ -46,6 +94,18 @@ namespace Iaonnis {
 	{
 		normal.flipY *= -1;
 	}
+	void Material::setAoMap(UUID map)
+	{
+		aoMap = map;
+	}
+	void Iaonnis::Material::setRoughnessMap(UUID rMap)
+	{
+		roughnessMap = rMap;
+	}
+	void Material::setMetallicMap(UUID map)
+	{
+		metallicMap = map;
+	}
 	void Material::setUVScale(glm::vec2 scale)
 	{
 		uvScale = scale;
@@ -58,13 +118,29 @@ namespace Iaonnis {
 	{
 		return albedo.color;
 	}
-	UUID Material::getDiffuseID() const
+	const UUID Material::getDiffuseID() const
 	{
 		return albedo.diffuseMap;
 	}
-	UUID Material::getNormalID() const
+	const UUID Material::getNormalID() const
 	{
 		return normal.normalMap;
+	}
+	const UUID Material::getAoID() const
+	{
+		return aoMap;
+	}
+	const UUID Material::getRoughnessID() const
+	{
+		return roughnessMap;
+	}
+	const UUID Material::getMetallicID() const
+	{
+		return metallicMap;
+	}
+	UUID& Material::getMetallicID()
+	{
+		return metallicMap;
 	}
 	float Material::getNormalStrength() const
 	{

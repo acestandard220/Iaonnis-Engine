@@ -108,7 +108,7 @@ namespace Iaonnis {
 			glm::vec4 position;
 			glm::vec4 color;
 		};
-		
+
 		struct LightMeta
 		{
 			glm::vec4 viewPos; //Note: ViewPos will change based on the mode of render.
@@ -125,7 +125,7 @@ namespace Iaonnis {
 			int  baseVertex;
 			uint32_t  baseInstance;
 		};
-		
+
 		struct {
 			uint32_t vao;
 			uint32_t vbo;
@@ -143,10 +143,14 @@ namespace Iaonnis {
 			uint32_t lightProgram;
 			uint32_t environmentProgram;
 
+			uint32_t modelSSBO;
 			//uint32_t cameraUBO;
 
 			uint32_t diffuseSSBO;
 			uint32_t normalSSBO;
+			uint32_t aoSSBO;
+			uint32_t roughnessSSBO;
+			uint32_t metallicSSBO;
 
 			uint32_t materialUBO;
 
@@ -159,9 +163,9 @@ namespace Iaonnis {
 			FramebufferHandle gBuffer;
 
 			static const int MAX_VERTEX = 300000;
-			static const int MAX_INDICES = 900000;
+			static const int MAX_INDICES = 500000;
 
-			const int MAX_DRAW_COMMANDS = 1000;
+			const int MAX_DRAW_COMMANDS = 10;
 			int commandPtr = 0;
 
 			int indexCount = 0;
@@ -169,12 +173,16 @@ namespace Iaonnis {
 			int currentVertexCount = 0;
 			int currentIndexCount = 0;
 
-			static const int MAX_MATERIALS = 1000;
+			static const int MAX_MATERIALS = 100;
 			GLuint64 diffuseUploadArr[MAX_MATERIALS];
 			GLuint64 normalUploadArr[MAX_MATERIALS];
+			GLuint64 aoUploadArr[MAX_MATERIALS];
+			GLuint64 roughnessUploadArr[MAX_MATERIALS];
+			GLuint64 metallicUploadArr[MAX_MATERIALS];
+
 			MaterialUpload materialUploadArr[MAX_MATERIALS];
 
-			static const int MAX_TYPE_OF_LIGHT = 1000;
+			static const int MAX_TYPE_OF_LIGHT = 100;
 			DirectionalLightUpload directionalLightArr[MAX_TYPE_OF_LIGHT];
 			SpotLightUpload spotLightArr[MAX_TYPE_OF_LIGHT];
 			PointLightUpload pointLightArr[MAX_TYPE_OF_LIGHT];
@@ -248,7 +256,7 @@ namespace Iaonnis {
 		{
 			//====================G-BUFFER================================
 			FRAMEBUFFER_DESC gBufferDesc;
-			gBufferDesc.n_Desc = 4;
+			gBufferDesc.n_Desc = 7;
 			gBufferDesc.textureDesc = (TEXTURE_DESC*)malloc(sizeof(TEXTURE_DESC) * gBufferDesc.n_Desc);
 			gBufferDesc.textureDesc[(int)gBufferHandles::Albedo].dataType = TEXTURE_DATA::TEXTURE_COLOR;
 			gBufferDesc.textureDesc[(int)gBufferHandles::Albedo].height = 800;
@@ -277,6 +285,33 @@ namespace Iaonnis {
 			gBufferDesc.textureDesc[(int)gBufferHandles::Normal].x = 0;
 			gBufferDesc.textureDesc[(int)gBufferHandles::Normal].y = 0;
 
+			gBufferDesc.textureDesc[(int)gBufferHandles::AO].dataType = TEXTURE_DATA::TEXTURE_COLOR;
+			gBufferDesc.textureDesc[(int)gBufferHandles::AO].height = 800;
+			gBufferDesc.textureDesc[(int)gBufferHandles::AO].width = 800;
+			gBufferDesc.textureDesc[(int)gBufferHandles::AO].nBitPerChannel = 32;
+			gBufferDesc.textureDesc[(int)gBufferHandles::AO].nChannels = 1;
+			gBufferDesc.textureDesc[(int)gBufferHandles::AO].ptr = nullptr;
+			gBufferDesc.textureDesc[(int)gBufferHandles::AO].x = 0;
+			gBufferDesc.textureDesc[(int)gBufferHandles::AO].y = 0;
+
+			gBufferDesc.textureDesc[(int)gBufferHandles::Roughness].dataType = TEXTURE_DATA::TEXTURE_COLOR;
+			gBufferDesc.textureDesc[(int)gBufferHandles::Roughness].height = 800;
+			gBufferDesc.textureDesc[(int)gBufferHandles::Roughness].width = 800;
+			gBufferDesc.textureDesc[(int)gBufferHandles::Roughness].nBitPerChannel = 32;
+			gBufferDesc.textureDesc[(int)gBufferHandles::Roughness].nChannels = 1;
+			gBufferDesc.textureDesc[(int)gBufferHandles::Roughness].ptr = nullptr;
+			gBufferDesc.textureDesc[(int)gBufferHandles::Roughness].x = 0;
+			gBufferDesc.textureDesc[(int)gBufferHandles::Roughness].y = 0;
+
+			gBufferDesc.textureDesc[(int)gBufferHandles::Metallic].dataType = TEXTURE_DATA::TEXTURE_COLOR;
+			gBufferDesc.textureDesc[(int)gBufferHandles::Metallic].height = 800;
+			gBufferDesc.textureDesc[(int)gBufferHandles::Metallic].width = 800;
+			gBufferDesc.textureDesc[(int)gBufferHandles::Metallic].nBitPerChannel = 32;
+			gBufferDesc.textureDesc[(int)gBufferHandles::Metallic].nChannels = 1;
+			gBufferDesc.textureDesc[(int)gBufferHandles::Metallic].ptr = nullptr;
+			gBufferDesc.textureDesc[(int)gBufferHandles::Metallic].x = 0;
+			gBufferDesc.textureDesc[(int)gBufferHandles::Metallic].y = 0;
+
 			gBufferDesc.textureDesc[(int)gBufferHandles::Depth].dataType = TEXTURE_DATA::TEXTURE_DEPTH;
 			gBufferDesc.textureDesc[(int)gBufferHandles::Depth].height = 800;
 			gBufferDesc.textureDesc[(int)gBufferHandles::Depth].width = 800;
@@ -295,7 +330,7 @@ namespace Iaonnis {
 		{
 			//====================Shader Creation================================================
 
-			rendererData.lightProgram = CreateShaderProgram("Assets/Shaders/lightVert.glsl", "Assets/Shaders/lightFrag.glsl");
+			rendererData.lightProgram = CreateShaderProgram("Assets/Shaders/lightVert.glsl", "Assets/Shaders/pbrFragment.glsl");
 			rendererData.environmentProgram = CreateShaderProgram("Assets/Shaders/environmentVert.glsl", "Assets/Shaders/environmentFrag.glsl");
 			//===================================================================================
 
@@ -304,13 +339,28 @@ namespace Iaonnis {
 			//=======================Texture SSBO=================================
 			glGenBuffers(1, &rendererData.diffuseSSBO);
 			glBindBuffer(GL_SHADER_STORAGE_BUFFER, rendererData.diffuseSSBO);
-			glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(MaterialUpload) * rendererData.MAX_MATERIALS, nullptr, GL_DYNAMIC_DRAW);
+			glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(GLuint64) * rendererData.MAX_MATERIALS, nullptr, GL_DYNAMIC_DRAW);
 			glBindBufferBase(GL_SHADER_STORAGE_BUFFER, SSBO_SLOT::Diffuse, rendererData.diffuseSSBO);
 
 			glGenBuffers(1, &rendererData.normalSSBO);
 			glBindBuffer(GL_SHADER_STORAGE_BUFFER, rendererData.normalSSBO);
-			glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(MaterialUpload) * rendererData.MAX_MATERIALS, nullptr, GL_DYNAMIC_DRAW);
+			glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(GLuint64) * rendererData.MAX_MATERIALS, nullptr, GL_DYNAMIC_DRAW);
 			glBindBufferBase(GL_SHADER_STORAGE_BUFFER, SSBO_SLOT::Normal, rendererData.normalSSBO);
+
+			glGenBuffers(1, &rendererData.aoSSBO);
+			glBindBuffer(GL_SHADER_STORAGE_BUFFER, rendererData.aoSSBO);
+			glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(GLuint64) * rendererData.MAX_MATERIALS, nullptr, GL_DYNAMIC_DRAW);
+			glBindBufferBase(GL_SHADER_STORAGE_BUFFER, SSBO_SLOT::AO, rendererData.aoSSBO);
+
+			glGenBuffers(1, &rendererData.roughnessSSBO);
+			glBindBuffer(GL_SHADER_STORAGE_BUFFER, rendererData.roughnessSSBO);
+			glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(GLuint64) * rendererData.MAX_MATERIALS, nullptr, GL_DYNAMIC_DRAW);
+			glBindBufferBase(GL_SHADER_STORAGE_BUFFER, SSBO_SLOT::Roughness, rendererData.roughnessSSBO);
+
+			glGenBuffers(1, &rendererData.metallicSSBO);
+			glBindBuffer(GL_SHADER_STORAGE_BUFFER, rendererData.metallicSSBO);
+			glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(GLuint64) * rendererData.MAX_MATERIALS, nullptr, GL_DYNAMIC_DRAW);
+			glBindBufferBase(GL_SHADER_STORAGE_BUFFER, SSBO_SLOT::Metallic, rendererData.metallicSSBO);
 
 			CreateLightBuffers();
 
@@ -477,13 +527,13 @@ namespace Iaonnis {
 			glDeleteBuffers(1, &rendererData.ebo);
 			glDeleteBuffers(1, &rendererData.ibo);
 
-			glDeleteVertexArrays(1,&rendererData.screenQuadVao);
-			glDeleteBuffers(1,&rendererData.screenQuadVbo);
-			glDeleteBuffers(1,&rendererData.screenQuadEbo);
+			glDeleteVertexArrays(1, &rendererData.screenQuadVao);
+			glDeleteBuffers(1, &rendererData.screenQuadVbo);
+			glDeleteBuffers(1, &rendererData.screenQuadEbo);
 
-			glDeleteVertexArrays(1,&rendererData.environmentCubeVao);
-			glDeleteBuffers(1,&rendererData.environmentCubeVbo);
-			glDeleteBuffers(1,&rendererData.environmentCubeEbo);
+			glDeleteVertexArrays(1, &rendererData.environmentCubeVao);
+			glDeleteBuffers(1, &rendererData.environmentCubeVbo);
+			glDeleteBuffers(1, &rendererData.environmentCubeEbo);
 
 			glDeleteProgram(rendererData.lightProgram);
 			glDeleteProgram(rendererData.environmentProgram);
@@ -546,6 +596,7 @@ namespace Iaonnis {
 
 			for (auto& material : materials)
 			{
+				UUID materialID = material->GetID();
 				bool inUse = false;
 				for (auto& entt : scene->getEntitiesWith<MeshFilterComponent>())
 				{
@@ -557,73 +608,148 @@ namespace Iaonnis {
 					auto meshFilter = entt.GetComponent<MeshFilterComponent>();
 					auto meshTransformMatrix = entt.GetTransformMatrix();
 
-					int i = 0;
-					for (auto mtlID : meshFilter.materialID)
+
+					auto hasMaterial = meshFilter.materialIDMap.find(materialID);
+					if (hasMaterial == meshFilter.materialIDMap.end())
 					{
-						if (mtlID == material->getID())
+						continue;
+					}
+					auto materialDependants = meshFilter.materialIDMap[materialID];
+
+					for (auto index : materialDependants)
+					{
+						std::shared_ptr<Mesh> meshResource = cache->getByUUID<Mesh>(meshFilter.meshID);
+						if (!meshResource)
+							continue;
+
+						SubMesh* subMesh = meshResource->getSubMesh(index);
+						Vertice* subMeshVertices = meshResource->getSubMeshVerticeStart(index);
+
+						std::vector<Vertice> transformedVertices(subMesh->vertexCount);
+						for (int v = 0; v < subMesh->vertexCount; v++)
 						{
-							std::shared_ptr<Mesh> meshResource = cache->getByUUID<Mesh>(meshFilter.meshID);
-							if (!meshResource)
-								continue;
+							transformedVertices[v] = subMeshVertices[v];
+							auto transformedVec4 = (meshTransformMatrix * glm::vec4(transformedVertices[v].p, 1.0F));
+							transformedVertices[v].n = glm::normalize(glm::mat3(glm::transpose(glm::inverse(meshTransformMatrix))) * transformedVertices[v].n);
+							transformedVertices[v].tangent = glm::normalize(glm::mat3(glm::transpose(glm::inverse(meshTransformMatrix))) * transformedVertices[v].tangent);
 
-							SubMesh* subMesh = meshResource->getSubMesh(i);
-							Vertice* subMeshVertices = meshResource->getSubMeshVerticeStart(i);
-
-							std::vector<Vertice> transformedVertices(subMesh->vertexCount);
-							for (int v = 0; v < subMesh->vertexCount; v++)
-							{
-								transformedVertices[v] = subMeshVertices[v];
-								auto transformedVec4 = (meshTransformMatrix * glm::vec4(transformedVertices[v].p, 1.0F));
-								transformedVertices[v].n = glm::normalize(glm::mat3(glm::transpose(glm::inverse(meshTransformMatrix))) * transformedVertices[v].n);
-								transformedVertices[v].tangent = glm::normalize(glm::mat3(glm::transpose(glm::inverse(meshTransformMatrix))) * transformedVertices[v].tangent);
-
-								transformedVertices[v].p = transformedVec4;
-							}
-
-							DrawData data;
-							data.indexCount = subMesh->indexCount;
-							data.indexPtr = meshResource->getSubMeshIndexStart(i);
-
-							data.vertexCount = subMesh->vertexCount;
-							data.vertexPtr = transformedVertices.data();
-
-							inUse = true;
-							submitDrawCommandData(data);
+							transformedVertices[v].p = transformedVec4;
 						}
 
-						i++;
+						DrawData data;
+						data.indexCount = subMesh->indexCount;
+						data.indexPtr = meshResource->getSubMeshIndexStart(index);
+
+						data.vertexCount = subMesh->vertexCount;
+						data.vertexPtr = transformedVertices.data();
+
+						inUse = true;
+						submitDrawCommandData(data);
 					}
 				}
 
+
 				if (inUse)
 				{
+					closeDrawCommands();
 					auto diffuseResource = cache->getByUUID<ImageTexture>(material->getDiffuseID());
 					auto normalResource = cache->getByUUID<ImageTexture>(material->getNormalID());
+					auto aoResource = cache->getByUUID<ImageTexture>(material->getAoID());
+					auto roughnessResource = cache->getByUUID<ImageTexture>(material->getRoughnessID());
+					auto metallicResource = cache->getByUUID<ImageTexture>(material->getMetallicID());
+
 					auto diffuseHandle = diffuseResource->getTextureHandle().handle;
 					auto normalHandle = normalResource->getTextureHandle().handle;
+					auto aoHandle = aoResource->getTextureHandle().handle;
+					auto roughnessHandle = roughnessResource->getTextureHandle().handle;
+					auto metallicHandle = metallicResource->getTextureHandle().handle;
 
 					MaterialUpload mtlUpload;
 					mtlUpload.color = material->getColor();
 					mtlUpload.uvScale = glm::vec4(material->getUVScale(), material->getNormalStrength(), 1.0f);
 
-					rendererData.diffuseUploadArr[rendererData.materialUploadPtr] = diffuseHandle;
-					rendererData.normalUploadArr[rendererData.materialUploadPtr] = normalHandle;
+					int poolIndex = rendererData.materialUploadPtr;
+					rendererData.diffuseUploadArr[poolIndex] = diffuseHandle;
+					rendererData.normalUploadArr[poolIndex] = normalHandle;
+					rendererData.aoUploadArr[poolIndex] = aoHandle;
+					rendererData.roughnessUploadArr[poolIndex] = roughnessHandle;
+					rendererData.metallicUploadArr[poolIndex] = metallicHandle;
+
+
 					rendererData.materialUploadArr[rendererData.materialUploadPtr] = mtlUpload;
 					rendererData.materialUploadPtr++;
-					
-					closeDrawCommands();
+
 
 					//Stats
 					RendererStats.totalTextureBufferSize += diffuseResource->GetBytSize();
 					RendererStats.totalTextureBufferSize += normalResource->GetBytSize();
+					RendererStats.totalTextureBufferSize += aoResource->GetBytSize();
+					RendererStats.totalTextureBufferSize += roughnessResource->GetBytSize();
+					RendererStats.totalTextureBufferSize += metallicResource->GetBytSize();
 				}
 
 			}
-
 			UploadMaterials();
 
 			timer.stop();
 			RendererStats.sceneUploadTime = timer.durationMs();
+		}
+
+		void UploadSceneNoBatching(Scene* scene)
+		{
+			resetGeometryPtrs();
+			std::shared_ptr<ResourceCache> cache = scene->getCache();
+			std::vector<std::shared_ptr<Material>> materials = cache->getByType<Material>(ResourceType::Material);
+
+			for (auto& entity : scene->GetEntities())
+			{
+				if (!entity.HasComponent<MeshFilterComponent>())
+					continue;
+
+				auto meshFilter = entity.GetComponent<MeshFilterComponent>();
+				auto meshTransformMatrix = entity.GetTransformMatrix();
+
+				std::shared_ptr<Mesh> meshResource = cache->getByUUID<Mesh>(meshFilter.meshID);
+
+				for(auto& [mtlID, mtlDeps]: meshFilter.materialIDMap)
+				{
+					for (auto& i : mtlDeps)
+					{
+						std::shared_ptr<Material> material = cache->getByUUID<Material>(mtlID);
+						if (!meshResource)
+							continue;
+
+						SubMesh* subMesh = meshResource->getSubMesh(i);
+						Vertice* subMeshVertices = meshResource->getSubMeshVerticeStart(i);
+
+						DrawData data;
+						data.indexCount = subMesh->indexCount;
+						data.indexPtr = meshResource->getSubMeshIndexStart(i);
+
+						data.vertexCount = subMesh->vertexCount;
+						data.vertexPtr = subMeshVertices;
+
+						submitDrawCommandData(data);
+						closeDrawCommands();
+
+						auto diffuseResource = cache->getByUUID<ImageTexture>(material->getDiffuseID());
+						auto normalResource = cache->getByUUID<ImageTexture>(material->getNormalID());
+						auto diffuseHandle = diffuseResource->getTextureHandle().handle;
+						auto normalHandle = normalResource->getTextureHandle().handle;
+
+						MaterialUpload mtlUpload;
+						mtlUpload.color = material->getColor();
+						mtlUpload.uvScale = glm::vec4(material->getUVScale(), material->getNormalStrength(), 1.0f);
+
+						rendererData.diffuseUploadArr[rendererData.materialUploadPtr] = diffuseHandle;
+						rendererData.normalUploadArr[rendererData.materialUploadPtr] = normalHandle;
+						rendererData.materialUploadArr[rendererData.materialUploadPtr] = mtlUpload;
+						rendererData.materialUploadPtr++;
+					}
+				}
+			}
+
+			UploadMaterials();
 		}
 
 		void UploadMaterials()
@@ -638,6 +764,12 @@ namespace Iaonnis {
 			glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, rendererData.materialUploadPtr * sizeof(GLuint64), &rendererData.diffuseUploadArr[0]);
 			glBindBuffer(GL_SHADER_STORAGE_BUFFER, rendererData.normalSSBO);
 			glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, rendererData.materialUploadPtr * sizeof(GLuint64), &rendererData.normalUploadArr[0]);
+			glBindBuffer(GL_SHADER_STORAGE_BUFFER, rendererData.aoSSBO);
+			glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, rendererData.materialUploadPtr * sizeof(GLuint64), &rendererData.aoUploadArr[0]);
+			glBindBuffer(GL_SHADER_STORAGE_BUFFER, rendererData.roughnessSSBO);
+			glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, rendererData.materialUploadPtr * sizeof(GLuint64), &rendererData.roughnessUploadArr[0]);
+			glBindBuffer(GL_SHADER_STORAGE_BUFFER, rendererData.metallicSSBO);
+			glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, rendererData.materialUploadPtr * sizeof(GLuint64), &rendererData.metallicUploadArr[0]);
 
 			timer.stop();
 			RendererStats.materialUploadTime = timer.durationMs();
@@ -705,7 +837,7 @@ namespace Iaonnis {
 			resetLightPtrs();
 			IGPUResource::bindFramebuffer(rendererData.fbo);
 
-			glClearColor(0.0f, 0.5f, 0.3f, 1.0f);
+			glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 			glBindVertexArray(rendererData.screenQuadVao);
@@ -721,12 +853,29 @@ namespace Iaonnis {
 			glActiveTexture(GL_TEXTURE2);
 			glBindTexture(GL_TEXTURE_2D, rendererData.gBuffer.m_Handles[(int)gBufferHandles::Normal].m_ID);
 
+			glActiveTexture(GL_TEXTURE3);
+			glBindTexture(GL_TEXTURE_2D, rendererData.gBuffer.m_Handles[(int)gBufferHandles::AO].m_ID);
+
+			glActiveTexture(GL_TEXTURE4);
+			glBindTexture(GL_TEXTURE_2D, rendererData.gBuffer.m_Handles[(int)gBufferHandles::Roughness].m_ID);
+
+			glActiveTexture(GL_TEXTURE5);
+			glBindTexture(GL_TEXTURE_2D, rendererData.gBuffer.m_Handles[(int)gBufferHandles::Metallic].m_ID);
+
+
 			int location = glGetUniformLocation(rendererData.lightProgram, "albedo");
 			glUniform1i(location, 0);
 			location = glGetUniformLocation(rendererData.lightProgram, "position");
 			glUniform1i(location, 1);
 			location = glGetUniformLocation(rendererData.lightProgram, "normal");
 			glUniform1i(location, 2);
+			location = glGetUniformLocation(rendererData.lightProgram, "iAo");
+			glUniform1i(location, 3);
+			location = glGetUniformLocation(rendererData.lightProgram, "iRoughness");
+			glUniform1i(location, 4);
+			location = glGetUniformLocation(rendererData.lightProgram, "iMetallic");
+			glUniform1i(location, 5);
+			
 
 			UploadLightData(scene);
 
@@ -794,7 +943,7 @@ namespace Iaonnis {
 		{
 			IGPUResource::bindFramebuffer(rendererData.gBuffer);
 
-			glClearColor(0.0f, 0.2f, 0.3f, 1.0f);
+			glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 			glUseProgram(program);
@@ -845,9 +994,10 @@ namespace Iaonnis {
 				scene->setEntityRegisteryClean();
 			}
 			
+
 			drawCommands(scene,program);
 			LightPass(scene);
-			EnvironmentPass(scene);
+			//EnvironmentPass(scene);
 
 		}
 
@@ -887,7 +1037,7 @@ namespace Iaonnis {
 			free(fboDesc.textureDesc);
 
 			FRAMEBUFFER_DESC gBufferDesc;
-			gBufferDesc.n_Desc = 4;
+			gBufferDesc.n_Desc = 7;
 			gBufferDesc.textureDesc = (TEXTURE_DESC*)malloc(sizeof(TEXTURE_DESC) * gBufferDesc.n_Desc);
 			gBufferDesc.textureDesc[(int)gBufferHandles::Albedo].dataType = TEXTURE_DATA::TEXTURE_COLOR;
 			gBufferDesc.textureDesc[(int)gBufferHandles::Albedo].height = frameResizeEvent->frameSizeY;
@@ -915,6 +1065,33 @@ namespace Iaonnis {
 			gBufferDesc.textureDesc[(int)gBufferHandles::Normal].ptr = nullptr;
 			gBufferDesc.textureDesc[(int)gBufferHandles::Normal].x = 0;
 			gBufferDesc.textureDesc[(int)gBufferHandles::Normal].y = 0;
+
+			gBufferDesc.textureDesc[(int)gBufferHandles::AO].dataType = TEXTURE_DATA::TEXTURE_COLOR;
+			gBufferDesc.textureDesc[(int)gBufferHandles::AO].height = frameResizeEvent->frameSizeY;
+			gBufferDesc.textureDesc[(int)gBufferHandles::AO].width = frameResizeEvent->frameSizeX;
+			gBufferDesc.textureDesc[(int)gBufferHandles::AO].nBitPerChannel = 32;
+			gBufferDesc.textureDesc[(int)gBufferHandles::AO].nChannels = 1;
+			gBufferDesc.textureDesc[(int)gBufferHandles::AO].ptr = nullptr;
+			gBufferDesc.textureDesc[(int)gBufferHandles::AO].x = 0;
+			gBufferDesc.textureDesc[(int)gBufferHandles::AO].y = 0;
+
+			gBufferDesc.textureDesc[(int)gBufferHandles::Roughness].dataType = TEXTURE_DATA::TEXTURE_COLOR;
+			gBufferDesc.textureDesc[(int)gBufferHandles::Roughness].height = frameResizeEvent->frameSizeY;
+			gBufferDesc.textureDesc[(int)gBufferHandles::Roughness].width = frameResizeEvent->frameSizeX;
+			gBufferDesc.textureDesc[(int)gBufferHandles::Roughness].nBitPerChannel = 32;
+			gBufferDesc.textureDesc[(int)gBufferHandles::Roughness].nChannels = 1;
+			gBufferDesc.textureDesc[(int)gBufferHandles::Roughness].ptr = nullptr;
+			gBufferDesc.textureDesc[(int)gBufferHandles::Roughness].x = 0;
+			gBufferDesc.textureDesc[(int)gBufferHandles::Roughness].y = 0;
+
+			gBufferDesc.textureDesc[(int)gBufferHandles::Metallic].dataType = TEXTURE_DATA::TEXTURE_COLOR;
+			gBufferDesc.textureDesc[(int)gBufferHandles::Metallic].height = frameResizeEvent->frameSizeY;
+			gBufferDesc.textureDesc[(int)gBufferHandles::Metallic].width = frameResizeEvent->frameSizeX;
+			gBufferDesc.textureDesc[(int)gBufferHandles::Metallic].nBitPerChannel = 32;
+			gBufferDesc.textureDesc[(int)gBufferHandles::Metallic].nChannels = 1;
+			gBufferDesc.textureDesc[(int)gBufferHandles::Metallic].ptr = nullptr;
+			gBufferDesc.textureDesc[(int)gBufferHandles::Metallic].x = 0;
+			gBufferDesc.textureDesc[(int)gBufferHandles::Metallic].y = 0;
 
 			gBufferDesc.textureDesc[(int)gBufferHandles::Depth].dataType = TEXTURE_DATA::TEXTURE_DEPTH;
 			gBufferDesc.textureDesc[(int)gBufferHandles::Depth].height = frameResizeEvent->frameSizeY;

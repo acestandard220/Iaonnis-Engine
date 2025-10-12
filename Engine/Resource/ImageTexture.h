@@ -9,6 +9,7 @@ namespace Iaonnis
 	{
 	public:
 		ImageTexture();
+		ImageTexture(const ImageTexture& other);
 		~ImageTexture();
 
 		void load(filespace::filepath path) override;

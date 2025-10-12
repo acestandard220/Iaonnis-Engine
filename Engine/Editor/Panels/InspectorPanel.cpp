@@ -1,8 +1,12 @@
 #include "InspectorPanel.h"
 #include "../Editor.h"
+#include "../Style.h"
 
 namespace Iaonnis
 {
+	ResourceCache* cache = nullptr;
+	UUID materialToInspect = UUIDFactory::getInvalidUUID();
+	bool materialInspector = false;
 
 	Inspector::Inspector(Editor* editor)
 		: EditorPanel(editor)
@@ -11,15 +15,159 @@ namespace Iaonnis
 		active = true;
 	}
 
-	void InspectSubEntity()
+	void Inspector::InspectSubEntity(Entity* entity, int index)
 	{
-		if(ImGui::TreeNodeEx("Sub Entity"))
+
+		/*if(ImGui::TreeNodeEx())
 		{
 			ImGui::Text("Name");
-			//ImGuiEx::ImageButton("Diffuse Texture", 0,ImVec2(50, 50), ImDrawFlags_RoundCornersAll);
+		
 			ImGui::TreePop();
+		}*/
+
+	}
+
+	bool Iaonnis::Inspector::SubMeshMaterialTree(Entity& entt, int subMeshIndex)
+	{
+		float contentRegionAvaiX = ImGui::GetContentRegionAvail().x;
+		//contentRegionAvaiX = 0.0f;
+
+		auto materialID = entt.GetSubMeshMaterial(subMeshIndex);
+
+		std::shared_ptr<Material> material = cache->getByUUID<Material>(materialID);
+		const ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_FramePadding | ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_Framed;
+
+		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2.5, 2.5));
+		bool value = ImGui::TreeNodeEx(material->getName().c_str(), flags);
+		if(value)
+		{
+
+			float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
+			float padding = ImGuiEx::tightButtonPadding.x;
+
+			ImGui::SameLine(contentRegionAvaiX - lineHeight * 0.5f);
+
+			ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+			if (ImGuiEx::ImageButton("##RemoveMaterial", ResourceCache::GetIcon(IconType::Remove)->getTextureHandle().m_ID, ImVec2(lineHeight, lineHeight)))
+			{
+				entt.ResetMaterial(subMeshIndex);
+				editor->getScene()->OnEntityRegisteryModified();
+				IAONNIS_LOG_ERROR("Material removed. Sub Mesh is using default material.");
+			}
+
+			ImGui::SameLine(contentRegionAvaiX - lineHeight - ImGuiEx::tightButtonPadding.x - lineHeight * 0.5f);
+			if (ImGuiEx::ImageButton("##DuplicateMaterial", ResourceCache::GetIcon(IconType::Duplicate)->getTextureHandle().m_ID, ImVec2(lineHeight, lineHeight)))
+			{
+				auto newMtlResource = cache->duplicate<Material>(materialID);
+				if (!newMtlResource)
+				{
+					IAONNIS_LOG_ERROR("Failed duplicate material.");
+				}
+				else {
+					entt.AssignMaterial(newMtlResource->GetID(), subMeshIndex);
+					editor->getScene()->OnEntityRegisteryModified();
+					IAONNIS_LOG_INFO("Material Duplicated Successfully");
+				}
+			}
+
+			ImGui::SameLine(contentRegionAvaiX - (ImGuiEx::tightButtonPadding.x + lineHeight) * 2.0f - lineHeight * 0.5f);
+			if (ImGuiEx::ImageButton("##OpenMaterial", ResourceCache::GetIcon(IconType::Open)->getTextureHandle().m_ID, ImVec2(lineHeight, lineHeight)))
+			{
+				std::string mtlFilePath = FileDialog::OpenFileDialog();
+
+			}
+			ImGui::SameLine(contentRegionAvaiX - (ImGuiEx::tightButtonPadding.x + lineHeight) * 3.0f - lineHeight * 0.5f);
+
+			if (ImGuiEx::ImageButton("##NewMaterial", ResourceCache::GetIcon(IconType::New)->getTextureHandle().m_ID, ImVec2(lineHeight, lineHeight)))
+			{
+				auto newMtlResource = cache->CreateNewMaterial();
+				entt.AssignMaterial(newMtlResource->GetID(), subMeshIndex);
+				editor->getScene()->OnEntityRegisteryModified();
+				IAONNIS_LOG_INFO("New Material Created Successfully. (UUID = %s)", UUIDFactory::uuidToString(newMtlResource->GetID()).c_str());
+			}
+
+			ImGui::PopStyleColor();
+		}
+		ImGui::PopStyleVar();
+		return value;
+	}
+
+	bool Inspector::InspectTextureMap(std::shared_ptr<Material> material, TextureMapType type)
+	{
+		auto imageResource = cache->getByUUID<ImageTexture>(material->GetMap(type));
+		ImVec2 buttonSize = ImVec2(75, 75);
+
+		std::string label = Material::GetMapTypeString(type);
+		ImGui::PushID(label.c_str());
+
+		bool value = ImGuiEx::ImageButton(label.c_str(), imageResource->getTextureHandle().m_ID, buttonSize);
+		if (value)
+		{
+			UUID materialID = material->GetID();
+			GeneralWindow::CacheViewer::SetActive([this, materialID, type](UUID id) -> void
+				{
+					auto mat = cache->getByUUID<Material>(materialID);
+					if (mat) {
+						mat->SetMap(type, id);
+						editor->getScene()->OnEntityRegisteryModified();
+					}
+				});
 		}
 
+		ImGui::SameLine();
+
+		ImGui::BeginGroup();
+		ImGuiEx::Button("Edit", ImVec2(70, 20), ImDrawFlags_RoundCornersTop);
+		if (ImGuiEx::Button("New", ImVec2(70, 20)))
+		{
+			auto duplicateResource = cache->duplicate<ImageTexture>(cache->GetDefaultByTextureType(type)->GetID());
+			material->SetMap(type, duplicateResource->GetID());
+			editor->getScene()->OnEntityRegisteryModified();//OnMaterialModified
+		}
+		if (ImGuiEx::Button("Open", ImVec2(70, 20)))
+		{
+			filespace::filepath filePath = FileDialog::OpenFileDialog();
+			if (!filePath.empty())
+			{
+				std::shared_ptr<ImageTexture> loadedTexture = cache->load<ImageTexture>(filePath);
+				if (loadedTexture == nullptr)
+				{
+					IAONNIS_LOG_ERROR("No texture has been loaded");
+				}
+				else {
+					material->SetMap(type, loadedTexture->GetID());
+					editor->getScene()->OnEntityRegisteryModified();//OnMaterialModified
+				}
+			}
+		}
+		if (ImGuiEx::Button("Remove", ImVec2(70, 20), ImDrawFlags_RoundCornersBottom))
+		{
+			auto defaultTexture = cache->GetDefaultByTextureType(type);
+			material->SetMap(type, defaultTexture->GetID());
+			editor->getScene()->OnEntityRegisteryModified();//OnMaterialModified
+		}
+		ImGui::EndGroup();
+		ImGui::Text(label.c_str());
+
+		ImGui::PopID();
+		return value;
+	}
+
+	void Iaonnis::Inspector::MaterialSelectionContext(Entity& entt, int index)
+	{
+		if(ImGui::BeginPopup("##MaterialSelection"))
+		{
+			for (auto& mtl : cache->getByType<Material>(ResourceType::Material))
+			{
+				if (ImGui::MenuItem(mtl->getName().c_str()))
+				{
+					entt.AssignMaterial(mtl->GetID(), index);
+					editor->getScene()->OnEntityRegisteryModified();//OnMaterialModified
+				}
+			}
+			ImGui::EndPopup();
+		}
+		return;
 	}
 
 	template<typename T, typename UIFunction>
@@ -45,12 +193,10 @@ namespace Iaonnis
 		ImGui::Separator();
 	}
 
-	const char* TypeStrings[] = {
-		"Directional","Point","Spot"
-	};
-
 	void Inspector::InspectEntity(Entity* entity)
 	{
+		auto cache = editor->getScene()->getCache();
+
 		DrawComponent<TagComponent>("Entity", *entity, [&](auto& component)
 		{
 			if (ImGui::Checkbox(("##EntityActive" + UUIDFactory::uuidToString(entity->GetUUID())).c_str(), &entity->active))
@@ -67,6 +213,89 @@ namespace Iaonnis
 			{
 				editor->getScene()->OnEntityRegisteryModified();
 			}
+		});
+		DrawComponent<MeshFilterComponent>("Mesh Filter", *entity, [&](auto& component)
+		{
+			MeshFilterComponent& meshFilter = component;
+
+			ImGui::Text(entity->GetTag().c_str());
+
+			const ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_FramePadding | ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_Framed;
+
+			std::shared_ptr<Mesh> mesh = cache->getByUUID<Mesh>(meshFilter.meshID);
+			if (ImGui::TreeNodeEx("Materials", flags))
+			{
+				for (auto& [mtlID, mtlDependants] : meshFilter.materialIDMap)
+				{
+					std::shared_ptr<Material> material = cache->getByUUID<Material>(mtlID);
+					std::string label = material->getName() + "##02301";
+					if (ImGui::TreeNodeEx(label.c_str(), flags))
+					{
+						static int mtlListCurrentItem = 0;
+						if(ImGui::BeginListBox("##MtlDependantList"))
+						{
+							for (int i = 0; i < mtlDependants.size(); i++)
+							{
+								float lineHeight = GImGui->Font->FontSize;
+								float padding = ImGuiEx::tightButtonPadding.x;
+
+								SubMesh* submesh = mesh->getSubMesh(i);
+								const bool isSelected = (mtlListCurrentItem == i);
+								if (ImGui::Selectable(submesh->name.c_str(), isSelected))
+								{
+									mtlListCurrentItem = i;
+								}
+
+								if (isSelected)
+									ImGui::SetItemDefaultFocus();
+							}
+
+							ImGui::EndListBox();
+						}
+						ImGui::SameLine();
+
+						ImGui::BeginGroup();
+						if (ImGuiEx::Button("Open", ImVec2(70, 25), ImDrawFlags_RoundCornersTop))
+						{
+							materialToInspect = mtlID;
+							materialInspector = true;
+							editor->getScene()->OnEntityRegisteryModified();//OnMaterialModified
+						}
+
+						if(materialInspector)
+						{
+							InspectMaterial(*entity, mtlID, mtlListCurrentItem);
+						}
+
+						if (ImGuiEx::Button("Remove", ImVec2(70, 25)))
+						{
+							entity->ResetMaterial(mtlListCurrentItem);
+							editor->getScene()->OnEntityRegisteryModified(); //OnMaterialModified
+						}
+
+						if (ImGuiEx::Button("Reset All", ImVec2(70, 25), ImDrawFlags_RoundCornersBottom))
+						{
+							entity->ResetAllSubMeshMaterials();
+							editor->getScene()->OnEntityRegisteryModified(); //OnMaterialModified
+						}
+
+						if (ImGuiEx::Button("Assign", ImVec2(70, 25)))
+						{
+							ImGui::OpenPopup("##MaterialSelection");
+						}
+						MaterialSelectionContext(*entity, mtlListCurrentItem);
+
+						ImGui::EndGroup();
+						ImGui::TreePop();
+					}
+
+					
+				}
+				entity->DettachUnusedMaterials();
+				ImGui::TreePop();
+			}
+
+			//GeneralWindow::CacheViewer::OnRender<ImageTexture>();
 		});
 
 		DrawComponent<LightComponent>("Light", *entity, [&](auto& component) {
@@ -97,7 +326,6 @@ namespace Iaonnis
 				ImGui::Text("Spot Direction"); ImGui::SameLine(); ImGuiEx::InputFloat3("##SpotLightDirection", &component.spotDirection[0], 0.0f);
 			}
 		});
-
 		DrawComponent<CameraComponent>("Camera", *entity, [&](auto& component) {
 				std::shared_ptr<Camera> camera = component.camera;
 				static int selectedType = (int)camera->getCameraType();
@@ -111,13 +339,32 @@ namespace Iaonnis
 				
 			});
 
+	}
 
+	void Inspector::InspectMaterial(Entity& entity, UUID materialID, int index)
+	{
+		if (ImGui::Begin("Inspect Material##InspectorChild",&materialInspector, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse))
+		{
+			auto material = cache->getByUUID<Material>(materialID);
+			if (SubMeshMaterialTree(entity, index))
+			{
+				InspectTextureMap(material, TextureMapType::Albedo);
+				InspectTextureMap(material, TextureMapType::Normal);
+				InspectTextureMap(material, TextureMapType::AO);
+				InspectTextureMap(material, TextureMapType::Roughness);
+				InspectTextureMap(material, TextureMapType::Metallic);
 
-		//MeshFilterComponent& meshFilter = entity->G
+				ImGui::TreePop();
+			}
+
+			ImGui::End();
+		}
 	}
 
 	void Inspector::OnUpdate(float dt)
 	{
+		cache = editor->getScene()->getCache().get();
+
 		auto selectionType = editor->GetSelectionType();
 		if (selectionType == SelectionType::None)
 			return;
@@ -127,7 +374,7 @@ namespace Iaonnis
 		if (selectionType == SelectionType::Entity)
 			InspectEntity(editor->getSelectedEntity());
 		else
-			InspectSubEntity();
+			InspectSubEntity(editor->getSelectedEntity(),editor->GetSelectionIndex());
 
 		ImGui::End();
 	}

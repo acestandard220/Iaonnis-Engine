@@ -8,6 +8,19 @@ namespace Iaonnis
 		type = ResourceType::ImageTexture;
 	}
 
+	ImageTexture::ImageTexture(const ImageTexture& other)
+	{
+		width = other.width;
+		height = other.height;
+		nChannels = other.nChannels;
+		nBitPerChannel = other.nBitPerChannel;
+
+		desc = other.desc;
+		desc.ptr = nullptr;
+
+		handle = IGPUResource::createGPUTexture(desc);
+	}
+
 	ImageTexture::~ImageTexture()
 	{
 		IGPUResource::destroyTexture(handle);

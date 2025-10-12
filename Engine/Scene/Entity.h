@@ -37,6 +37,113 @@ namespace Iaonnis
 			return GetComponent<TagComponent>().tag;
 		}
 
+		UUID GetSubMeshMaterial(int index)
+		{
+
+			if (!HasComponent<MeshFilterComponent>())
+			{
+				IAONNIS_LOG_ERROR("Cannot add material to entity without a mesh filter");
+				return UUIDFactory::getInvalidUUID();
+			}
+
+			auto& meshFilter = GetComponent<MeshFilterComponent>();
+			auto& materialMap = meshFilter.materialIDMap;
+
+			for (auto& [mtl, deps] : materialMap)
+			{
+				for (auto dep : deps)
+				{
+					if (dep == index)
+						return mtl;
+				}
+			}
+
+			return UUIDFactory::getInvalidUUID();
+		}
+
+		void DettachUnusedMaterials()
+		{
+			if (!HasComponent<MeshFilterComponent>())
+			{
+				IAONNIS_LOG_ERROR("Cannot add material to entity without a mesh filter");
+				return;
+			}
+
+			auto& meshFilter = GetComponent<MeshFilterComponent>();
+			auto& materialMap = meshFilter.materialIDMap;
+
+			std::set<UUID>toClear;
+			for (auto& [matID, deps] : materialMap)
+			{
+				if(!deps.size())
+				{
+					toClear.insert(matID);
+				}
+			}
+
+			for(auto& c : toClear)
+			{
+				materialMap.erase(c);
+			}
+		}
+
+		void AssignMaterial(UUID mtlID, int subMeshIndex)
+		{
+			if (!HasComponent<MeshFilterComponent>())
+			{
+				IAONNIS_LOG_ERROR("Cannot add material to entity without a mesh filter");
+				return;
+			}
+
+			auto& meshFilter = GetComponent<MeshFilterComponent>();
+			auto& materialMap = meshFilter.materialIDMap;
+
+			for (auto& [matID, dependants] : materialMap)
+			{
+				dependants.remove(subMeshIndex);
+			}
+
+			meshFilter.materialIDMap[mtlID].push_back(subMeshIndex);
+			return;
+		}
+
+		void AssignGlobalMaterial(UUID mtlID)
+		{
+			if (!HasComponent<MeshFilterComponent>())
+			{
+				IAONNIS_LOG_ERROR("Cannot add material to entity without a mesh filter");
+				return;
+			}
+			auto& meshFilter = GetComponent<MeshFilterComponent>();
+			for (int subMeshIndex = 0; subMeshIndex < meshFilter.names.size(); subMeshIndex++)
+			{
+				AssignMaterial(mtlID, subMeshIndex);
+			}
+			return;
+		}
+
+		void ResetMaterial(int subMeshIndex)
+		{
+			return AssignMaterial(ResourceCache::getDefaultMaterial()->GetID(), subMeshIndex);
+		}
+
+		void ResetAllSubMeshMaterials()
+		{
+			if (!HasComponent<MeshFilterComponent>())
+			{
+				IAONNIS_LOG_ERROR("Cannot add material to entity without a mesh filter");
+				return;
+			}
+			auto& meshFilter = GetComponent<MeshFilterComponent>();
+			for (int subMeshIndex = 0; subMeshIndex < meshFilter.names.size(); subMeshIndex++)
+			{
+				ResetMaterial(subMeshIndex);
+			}
+			return;
+		}
+
+		
+
 		template<typename T>
 		bool HasComponent()
 		{
