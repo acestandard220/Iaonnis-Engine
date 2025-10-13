@@ -59,7 +59,7 @@ namespace Iaonnis
 
 		void UploadScene(Scene* scene);
 		void UploadSceneNoBatching(Scene* scene);
-		void UploadMaterialArray();
+		void UploadMaterialArray(Scene* scene);
 		void UploadMaterialsToGPU();
 
 		void UploadLightData(Scene* scene);
@@ -71,6 +71,7 @@ namespace Iaonnis
 		void drawCommands(Scene* scene, uint32_t program);
 		void resetGeometryPtrs();
 		void resetLightPtrs();
+		void resetMaterialPtrs();
 
 		void RenderScene(Scene* scene, uint32_t program);
 

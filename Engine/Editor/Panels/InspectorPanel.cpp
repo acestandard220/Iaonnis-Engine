@@ -111,7 +111,7 @@ namespace Iaonnis
 					auto mat = cache->getByUUID<Material>(materialID);
 					if (mat) {
 						mat->SetMap(type, id);
-						editor->getScene()->OnEntityRegisteryModified();
+						editor->getScene()->OnMaterialModified();
 					}
 				});
 		}
@@ -124,7 +124,7 @@ namespace Iaonnis
 		{
 			auto duplicateResource = cache->duplicate<ImageTexture>(cache->GetDefaultByTextureType(type)->GetID());
 			material->SetMap(type, duplicateResource->GetID());
-			editor->getScene()->OnEntityRegisteryModified();//OnMaterialModified
+			editor->getScene()->OnMaterialModified();//OnMaterialModified
 		}
 		if (ImGuiEx::Button("Open", ImVec2(70, 20)))
 		{
@@ -138,7 +138,7 @@ namespace Iaonnis
 				}
 				else {
 					material->SetMap(type, loadedTexture->GetID());
-					editor->getScene()->OnEntityRegisteryModified();//OnMaterialModified
+					editor->getScene()->OnMaterialModified();//OnMaterialModified
 				}
 			}
 		}
@@ -146,7 +146,7 @@ namespace Iaonnis
 		{
 			auto defaultTexture = cache->GetDefaultByTextureType(type);
 			material->SetMap(type, defaultTexture->GetID());
-			editor->getScene()->OnEntityRegisteryModified();//OnMaterialModified
+			editor->getScene()->OnMaterialModified();//OnMaterialModified
 		}
 		ImGui::EndGroup();
 		ImGui::Text(label.c_str());
@@ -261,7 +261,7 @@ namespace Iaonnis
 						{
 							materialToInspect = mtlID;
 							materialInspector = true;
-							editor->getScene()->OnEntityRegisteryModified();//OnMaterialModified
+							//editor->getScene()->OnMaterialModified();//OnMaterialModified
 						}
 
 						if(materialInspector)

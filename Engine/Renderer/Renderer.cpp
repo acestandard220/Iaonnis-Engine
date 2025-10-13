@@ -651,7 +651,7 @@ namespace Iaonnis {
 				if (inUse)
 				{
 					closeDrawCommands();
-					auto diffuseResource = cache->getByUUID<ImageTexture>(material->getDiffuseID());
+					/*auto diffuseResource = cache->getByUUID<ImageTexture>(material->getDiffuseID());
 					auto normalResource = cache->getByUUID<ImageTexture>(material->getNormalID());
 					auto aoResource = cache->getByUUID<ImageTexture>(material->getAoID());
 					auto roughnessResource = cache->getByUUID<ImageTexture>(material->getRoughnessID());
@@ -683,11 +683,12 @@ namespace Iaonnis {
 					RendererStats.totalTextureBufferSize += normalResource->GetBytSize();
 					RendererStats.totalTextureBufferSize += aoResource->GetBytSize();
 					RendererStats.totalTextureBufferSize += roughnessResource->GetBytSize();
-					RendererStats.totalTextureBufferSize += metallicResource->GetBytSize();
+					RendererStats.totalTextureBufferSize += metallicResource->GetBytSize();*/
 				}
-
 			}
-			UploadMaterialsToGPU();
+
+			//UploadMaterialArray(scene);
+			//UploadMaterialsToGPU();
 
 			timer.stop();
 			RendererStats.sceneUploadTime = timer.durationMs();
@@ -750,8 +751,52 @@ namespace Iaonnis {
 			UploadMaterialsToGPU();
 		}
 
-		void UploadMaterialArray()
+		void Renderer3D::UploadMaterialArray(Scene* scene)
 		{
+			resetMaterialPtrs();
+
+			auto cache = scene->getCache();
+			auto materials = cache->getByType<Material>(ResourceType::Material);
+
+			for (auto& material : materials)
+			{
+				if (material->GetRefCount() > 0)
+				{
+					auto diffuseResource = cache->getByUUID<ImageTexture>(material->getDiffuseID());
+					auto normalResource = cache->getByUUID<ImageTexture>(material->getNormalID());
+					auto aoResource = cache->getByUUID<ImageTexture>(material->getAoID());
+					auto roughnessResource = cache->getByUUID<ImageTexture>(material->getRoughnessID());
+					auto metallicResource = cache->getByUUID<ImageTexture>(material->getMetallicID());
+
+					auto diffuseHandle = diffuseResource->getTextureHandle().handle;
+					auto normalHandle = normalResource->getTextureHandle().handle;
+					auto aoHandle = aoResource->getTextureHandle().handle;
+					auto roughnessHandle = roughnessResource->getTextureHandle().handle;
+					auto metallicHandle = metallicResource->getTextureHandle().handle;
+
+					MaterialUpload mtlUpload;
+					mtlUpload.color = material->getColor();
+					mtlUpload.uvScale = glm::vec4(material->getUVScale(), material->getNormalStrength(), 1.0f);
+
+					int poolIndex = rendererData.materialUploadPtr;
+					rendererData.diffuseUploadArr[poolIndex] = diffuseHandle;
+					rendererData.normalUploadArr[poolIndex] = normalHandle;
+					rendererData.aoUploadArr[poolIndex] = aoHandle;
+					rendererData.roughnessUploadArr[poolIndex] = roughnessHandle;
+					rendererData.metallicUploadArr[poolIndex] = metallicHandle;
+
+					rendererData.materialUploadArr[rendererData.materialUploadPtr] = mtlUpload;
+					rendererData.materialUploadPtr++;
+
+					//Stats
+					RendererStats.totalTextureBufferSize += diffuseResource->GetBytSize();
+					RendererStats.totalTextureBufferSize += normalResource->GetBytSize();
+					RendererStats.totalTextureBufferSize += aoResource->GetBytSize();
+					RendererStats.totalTextureBufferSize += roughnessResource->GetBytSize();
+					RendererStats.totalTextureBufferSize += metallicResource->GetBytSize();
+				}
+				else { continue; }
+			}
 
 		}
 
@@ -969,7 +1014,6 @@ namespace Iaonnis {
 			rendererData.currentIndexCount = 0;
 			rendererData.indexCount = 0;
 			rendererData.vertexCount = 0;  // Add this
-			rendererData.materialUploadPtr = 0;  // Add this
 
 			RendererStats.nDrawCalls = 0;
 			RendererStats.nRenderedIndices = 0;
@@ -984,6 +1028,11 @@ namespace Iaonnis {
 			rendererData.lightMeta.nPointLight = 0;
 		}
 
+		void resetMaterialPtrs()
+		{
+			rendererData.materialUploadPtr = 0;  // Add this
+		}
+
 		void RenderScene(Scene* scene, uint32_t program)
 		{
 			if (!scene)
@@ -995,6 +1044,13 @@ namespace Iaonnis {
 			{
 				UploadScene(scene);
 				scene->SetEntityRegisteryClean();
+			}
+
+			if (scene->IsMaterialsDirty())
+			{
+				UploadMaterialArray(scene);
+				UploadMaterialsToGPU();
+				scene->SetMaterialClean();
 			}
 			
 

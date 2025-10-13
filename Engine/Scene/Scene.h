@@ -68,7 +68,7 @@ namespace Iaonnis
 			void SetMaterialClean() { isMaterialDirty = false; }
 
 			bool IsEntityRegisteryDirty()const { return isEntityRegDirty; }
-			bool isMaterialsDirty(void)const { return isMaterialDirty; }
+			bool IsMaterialsDirty(void)const { return isMaterialDirty; }
 
 			std::shared_ptr<Camera> GetSceneCamera() { return camera; }
 

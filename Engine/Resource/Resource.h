@@ -29,6 +29,8 @@ namespace Iaonnis
 		const filespace::filepath& getPath()const;
 		ResourceType getType()const;
 
+		int GetRefCount()const { return refCount; }
+
 		static std::string getTypeString(ResourceType type);
 		
 	protected:
