@@ -43,12 +43,6 @@ namespace Iaonnis
 				}
 
 				ImGui::Separator();
-				if (ImGui::MenuItem("Sync"))
-				{
-					editor->getScene()->OnEntityRegisteryModified(); //Todo: Trigger somthing more global
-				}
-
-				ImGui::Separator();
 				if (ImGui::MenuItem("Exit", "Alt + F4"))
 				{
 
@@ -58,6 +52,26 @@ namespace Iaonnis
 
 			if (ImGui::BeginMenu("Edit"))
 			{
+
+				ImGui::EndMenu();
+			}
+
+			if (ImGui::BeginMenu("Resource"))
+			{
+				if (ImGui::MenuItem("Import Asset"))
+				{
+
+				}
+				if (ImGui::MenuItem("Export Asset"))
+				{
+
+				}
+
+				ImGui::Separator();
+				if (ImGui::MenuItem("Sync"))
+				{
+					editor->getScene()->OnEntityRegisteryModified(); //Todo: Trigger somthing more global
+				}
 
 				ImGui::EndMenu();
 			}

@@ -28,6 +28,20 @@ namespace Iaonnis
 		ResourceCache();
 		~ResourceCache();
 
+		ResourceType GetTypeByExtension(const std::string& extension)
+		{
+			if (extension == ".jpg" || extension == ".jpeg" || extension == ".png" || extension == ".bmp" || extension == ".ppm" || extension == ".tga")
+			{
+				return ResourceType::ImageTexture;
+			}
+			else if (extension == ".obj" || extension == ".mesh" || extension == ".gltf" || extension == ".glb")
+			{
+				return ResourceType::Mesh;
+			}
+
+			return ResourceType::Unknown;;
+		}
+
 		template<class T>
 		filespace::filepath GenerateDuplicateResourceName(filespace::filepath path)
 		{
@@ -130,6 +144,7 @@ namespace Iaonnis
 			return newResource;
 		}
 
+
 		template<class T>
 		std::shared_ptr<T> duplicate(UUID originalResourceID)
 		{
@@ -166,7 +181,7 @@ namespace Iaonnis
 
 
 		template<class T>
-		void use(UUID id)
+		void use(UUID id , int count = 1)
 		{
 			auto resource = getByUUID<T>(id);
 			if (resource == nullptr)
@@ -175,11 +190,11 @@ namespace Iaonnis
 				return;
 			}
 
-			resource->use();
+			resource->use(count);
 		}
 
 		template<class T>
-		void unsee(UUID id)
+		void unsee(UUID id, int count = 1)
 		{
 			auto resource = getByUUID<T>(id);
 			if (resource == nullptr)
@@ -188,7 +203,7 @@ namespace Iaonnis
 				return;
 			}
 
-			resource->unuse();
+			resource->unuse(count);
 		}
 
 		std::shared_ptr<Material> CreateNewMaterial();

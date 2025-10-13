@@ -59,7 +59,8 @@ namespace Iaonnis
 
 		void UploadScene(Scene* scene);
 		void UploadSceneNoBatching(Scene* scene);
-		void UploadMaterials();
+		void UploadMaterialArray();
+		void UploadMaterialsToGPU();
 
 		void UploadLightData(Scene* scene);
 		void LightPass(Scene* scene);

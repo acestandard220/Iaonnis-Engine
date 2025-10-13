@@ -38,8 +38,8 @@ namespace Iaonnis
 		void setName(const std::string& nme) { name = nme; }
 		void setPath(filespace::filepath p) { path = p; }
 
-		void use() { refCount++; }
-		void unuse() { refCount--; }
+		void use(int count = 1) { refCount += count; }
+		void unuse(int count = 1);
 
 	protected:
 		UUID id;

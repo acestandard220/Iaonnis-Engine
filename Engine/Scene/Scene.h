@@ -32,7 +32,10 @@ namespace Iaonnis
 			Entity& addPlane(const std::string& name);
 
 			void AssignMaterial(UUID entityID, UUID mtlID, int subMeshIndex);
+			void AssigGlobalMaterial(UUID entityID, UUID mtlID);
 
+			void ResetMaterial(UUID entityID, int subMeshIndex);
+			void ResetAllMaterial(UUID entityID);
 
 			void removeEntity(Entity entity);
 
@@ -59,12 +62,12 @@ namespace Iaonnis
 			const std::string& getName()const { return name; }
 			
 			void OnEntityRegisteryModified() { isEntityRegDirty = true; }
-			void setEntityRegisteryClean() { isEntityRegDirty = false; }
+			void SetEntityRegisteryClean() { isEntityRegDirty = false; }
 
 			void OnMaterialModified() { isMaterialDirty = true; }
 			void SetMaterialClean() { isMaterialDirty = false; }
 
-			bool isEntityRegisteryDirty()const { return isEntityRegDirty; }
+			bool IsEntityRegisteryDirty()const { return isEntityRegDirty; }
 			bool isMaterialsDirty(void)const { return isMaterialDirty; }
 
 			std::shared_ptr<Camera> GetSceneCamera() { return camera; }

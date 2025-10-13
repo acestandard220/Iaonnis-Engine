@@ -648,7 +648,6 @@ namespace Iaonnis {
 					}
 				}
 
-
 				if (inUse)
 				{
 					closeDrawCommands();
@@ -675,7 +674,6 @@ namespace Iaonnis {
 					rendererData.roughnessUploadArr[poolIndex] = roughnessHandle;
 					rendererData.metallicUploadArr[poolIndex] = metallicHandle;
 
-
 					rendererData.materialUploadArr[rendererData.materialUploadPtr] = mtlUpload;
 					rendererData.materialUploadPtr++;
 
@@ -689,7 +687,7 @@ namespace Iaonnis {
 				}
 
 			}
-			UploadMaterials();
+			UploadMaterialsToGPU();
 
 			timer.stop();
 			RendererStats.sceneUploadTime = timer.durationMs();
@@ -749,10 +747,15 @@ namespace Iaonnis {
 				}
 			}
 
-			UploadMaterials();
+			UploadMaterialsToGPU();
 		}
 
-		void UploadMaterials()
+		void UploadMaterialArray()
+		{
+
+		}
+
+		void Iaonnis::Renderer3D::UploadMaterialsToGPU()
 		{
 			CPUTimer timer;
 			timer.start();
@@ -988,10 +991,10 @@ namespace Iaonnis {
 				return;
 			}
 
-			if (scene->isEntityRegisteryDirty())
+			if (scene->IsEntityRegisteryDirty())
 			{
 				UploadScene(scene);
-				scene->setEntityRegisteryClean();
+				scene->SetEntityRegisteryClean();
 			}
 			
 

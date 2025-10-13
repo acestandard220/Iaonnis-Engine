@@ -1,7 +1,6 @@
 #include "Scene.h"
 #include "Entity.h"
 
-
 namespace Iaonnis
 {
     Entity* g = nullptr;
@@ -44,8 +43,9 @@ namespace Iaonnis
         rustyMetalMtl->setRoughnessMap(rustyMetalRough->GetID());
         rustyMetalMtl->setMetallicMap(rustyMetalMetallic->GetID());
 
-        cubeEntity.AssignMaterial(rustyMetalMtl->GetID(), 0);
-        
+        //cubeEntity.AssignMaterial(rustyMetalMtl->GetID(), 0);
+        AssignMaterial(cubeEntity.GetUUID(), rustyMetalMtl->GetID(), 0);
+
 
         //addMesh("Assets/Models/Lion_Head_4k/LionHead.obj","BackPack");
         addMesh("Assets/backpack.obj","BackPack");
@@ -106,12 +106,9 @@ namespace Iaonnis
         
         for (int i = 0; i < subMeshCount; i++)
         {
-            entity.AssignMaterial(defaultMaterialID, i);
+            AssignMaterial(entity.GetUUID(), defaultMaterialID, i);
             meshFilterComp.names[i] = meshResource->getSubMesh(i)->name;
-            cache->use<Material>(defaultMaterialID);
         }
-
-
 
         return entity;
     }
@@ -128,9 +125,8 @@ namespace Iaonnis
 
         for (int i = 0; i < subMeshCount; i++)
         {
-            entity.AssignMaterial(defaultMaterialID, i);
+            AssignMaterial(entity.GetUUID(), defaultMaterialID, i);
             meshFilterComp.names[i] = meshResource->getSubMesh(i)->name;
-            cache->use<Material>(defaultMaterialID);
         }
         return entity;
     }
@@ -179,7 +175,6 @@ namespace Iaonnis
         cameraComp;
 
         return entity;
-        // TODO: insert return statement here
     }
 
     Entity& Scene::addCube(const std::string& name)
@@ -192,10 +187,9 @@ namespace Iaonnis
 
         meshFilterComp.names.resize(1);
 
-        entity.AssignMaterial(defaultMtlID, 0);
+        AssignMaterial(entity.GetUUID(), defaultMtlID, 0);
         meshFilterComp.names[0] = "Sub" + meshResource->getSubMesh(0)->name;
 
-        cache->use<Material>(defaultMtlID);
         return entity;
     }
 
@@ -208,41 +202,58 @@ namespace Iaonnis
         auto& meshFilterComp = entity.AddComponent<MeshFilterComponent>(cache->getByName<Mesh>("Plane")->GetID());
         meshFilterComp.names.resize(1);
 
-        entity.AssignMaterial(defaultMtlID, 0);
+        AssignMaterial(entity.GetUUID(), defaultMtlID, 0);
         meshFilterComp.names[0] = "Sub" + meshResource->getSubMesh(0)->name;
-
-        cache->use<Material>(defaultMtlID);
         return entity;
     }
 
-    //Entity has a fast helper function. Use that instead.
     void Scene::AssignMaterial(UUID entityID, UUID mtlID, int subMeshIndex)
     {
-        Entity* entity = nullptr;
-        for (auto entt : entities)
-        {
-            if (entt.GetUUID() == entityID)
-            {
-                entity = &entt;
-                break;
-            }
-        }
-
-        if (entity == nullptr)
-        {
-            IAONNIS_LOG_ERROR("Failed to find entity. (UUID = %s)", UUIDFactory::uuidToString(entityID));
-            return;
-        }
-
-        auto meshFilter = entity->GetComponent<MeshFilterComponent>();
-        auto& materialMap = meshFilter.materialIDMap;
-
-        for (auto& [matID, dependants] : materialMap)
-            dependants.remove(subMeshIndex);
-
-        meshFilter.materialIDMap[mtlID].push_back(subMeshIndex);
-        return;
+        auto& entt = GetEntity(entityID);
+        UUID previousMTLID = entt.GetSubMeshMaterial(subMeshIndex);
+        cache->unsee<Material>(previousMTLID);
+        entt.AssignMaterial(mtlID, subMeshIndex);
+        cache->use<Material>(mtlID);
     }
+
+    void Scene::ResetMaterial(UUID entityID, int subMeshIndex)
+    {
+        auto& entt = GetEntity(entityID);
+
+        UUID previousMTLID = entt.GetSubMeshMaterial(subMeshIndex);
+        cache->unsee<Material>(previousMTLID);
+        entt.ResetMaterial(subMeshIndex);
+        cache->use<Material>(cache->getDefaultMaterial()->GetID());
+    }
+
+    void Scene::AssigGlobalMaterial(UUID entityID, UUID mtlID)
+    {
+        auto& entt = GetEntity(entityID);
+        
+        auto materials = entt.GetMaterialsInUse();
+        for (auto& mtl : materials)
+        {
+            cache->unsee<Material>(mtl);
+        }      
+
+        entt.AssignGlobalMaterial(mtlID);
+        cache->use<Material>(cache->getDefaultMaterial()->GetID(), entt.GetSubMeshCount());
+    }
+
+    void Scene::ResetAllMaterial(UUID entityID)
+    {
+        auto& entt = GetEntity(entityID);
+
+        auto materials = entt.GetMaterialsInUse();
+        for (auto& mtl : materials)
+        {
+            cache->unsee<Material>(mtl);
+        }
+
+        entt.ResetAllSubMeshMaterials();
+        cache->use<Material>(cache->getDefaultMaterial()->GetID(), entt.GetSubMeshCount());
+    }
+
 
     void Scene::removeEntity(Entity entity)
     {

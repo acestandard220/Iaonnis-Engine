@@ -34,4 +34,9 @@ namespace Iaonnis
 		return "Unknown";
 	}
 
+	void Resource::unuse(int count) {
+		refCount -= count; 
+		IAONNIS_ASSERT(refCount >= 0, "Reference Count cannot be negative");
+	}
+
 }

@@ -5,6 +5,8 @@
 namespace Iaonnis
 {
 	ResourceCache* cache = nullptr;
+	Scene* scene = nullptr;
+
 	UUID materialToInspect = UUIDFactory::getInvalidUUID();
 	bool materialInspector = false;
 
@@ -50,7 +52,7 @@ namespace Iaonnis
 			ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
 			if (ImGuiEx::ImageButton("##RemoveMaterial", ResourceCache::GetIcon(IconType::Remove)->getTextureHandle().m_ID, ImVec2(lineHeight, lineHeight)))
 			{
-				entt.ResetMaterial(subMeshIndex);
+				scene->ResetMaterial(entt.GetUUID(), subMeshIndex);
 				editor->getScene()->OnEntityRegisteryModified();
 				IAONNIS_LOG_ERROR("Material removed. Sub Mesh is using default material.");
 			}
@@ -64,7 +66,7 @@ namespace Iaonnis
 					IAONNIS_LOG_ERROR("Failed duplicate material.");
 				}
 				else {
-					entt.AssignMaterial(newMtlResource->GetID(), subMeshIndex);
+					scene->AssignMaterial(entt.GetUUID(), newMtlResource->GetID(), subMeshIndex);
 					editor->getScene()->OnEntityRegisteryModified();
 					IAONNIS_LOG_INFO("Material Duplicated Successfully");
 				}
@@ -81,7 +83,7 @@ namespace Iaonnis
 			if (ImGuiEx::ImageButton("##NewMaterial", ResourceCache::GetIcon(IconType::New)->getTextureHandle().m_ID, ImVec2(lineHeight, lineHeight)))
 			{
 				auto newMtlResource = cache->CreateNewMaterial();
-				entt.AssignMaterial(newMtlResource->GetID(), subMeshIndex);
+				scene->AssignMaterial(entt.GetUUID(), newMtlResource->GetID(), subMeshIndex);
 				editor->getScene()->OnEntityRegisteryModified();
 				IAONNIS_LOG_INFO("New Material Created Successfully. (UUID = %s)", UUIDFactory::uuidToString(newMtlResource->GetID()).c_str());
 			}
@@ -161,7 +163,7 @@ namespace Iaonnis
 			{
 				if (ImGui::MenuItem(mtl->getName().c_str()))
 				{
-					entt.AssignMaterial(mtl->GetID(), index);
+					scene->AssignMaterial(entt.GetUUID(), mtl->GetID(), index);
 					editor->getScene()->OnEntityRegisteryModified();//OnMaterialModified
 				}
 			}
@@ -269,13 +271,13 @@ namespace Iaonnis
 
 						if (ImGuiEx::Button("Remove", ImVec2(70, 25)))
 						{
-							entity->ResetMaterial(mtlListCurrentItem);
+							scene->ResetMaterial(entity->GetUUID(), mtlListCurrentItem);
 							editor->getScene()->OnEntityRegisteryModified(); //OnMaterialModified
 						}
 
 						if (ImGuiEx::Button("Reset All", ImVec2(70, 25), ImDrawFlags_RoundCornersBottom))
 						{
-							entity->ResetAllSubMeshMaterials();
+							scene->ResetAllMaterial(entity->GetUUID());
 							editor->getScene()->OnEntityRegisteryModified(); //OnMaterialModified
 						}
 
@@ -363,7 +365,9 @@ namespace Iaonnis
 
 	void Inspector::OnUpdate(float dt)
 	{
-		cache = editor->getScene()->getCache().get();
+		scene = editor->getScene();
+		cache = scene->getCache().get();
+
 
 		auto selectionType = editor->GetSelectionType();
 		if (selectionType == SelectionType::None)
