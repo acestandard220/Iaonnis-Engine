@@ -2,81 +2,133 @@ Entities:
   -
     Active: true
     MeshFilter:
-      Materials:
-        - 415d1d5b-b186-4a32-a5a7-d5b43618e501
+      Material:
+        677eb619-4dd2-4fab-861d-4399c1beee9c:
+          - 0
+      Names:
         - SubCube
-      Names: []
-      UUID: 0fe2f9d7-4237-4612-b7a3-c083b503a6cb
-    Tag: Frank
+      UUID: 33b68157-046d-4158-bda4-3f2d6a418877
+    Tag: Cube1
     Transform:
-      - Position
       -
         - 0.0
         - 0.0
         - 0.0
-      - Rotation
       -
         - 0.0
         - 0.0
         - 0.0
-      - Scale
       -
         - 1.0
         - 1.0
         - 1.0
-    UUID: 0b6f3111-bd50-4971-a10e-4d00e16b70c4
+    UUID: 94457b3f-f3b4-4119-b036-86662e0c3ffb
   -
     Active: true
-    MeshFilter:
-      Materials:
-        - 415d1d5b-b186-4a32-a5a7-d5b43618e501
-        - SubCube
-      Names: []
-      UUID: 0fe2f9d7-4237-4612-b7a3-c083b503a6cb
-    Tag: NewCube
-    Transform:
-      - Position
-      -
-        - 2.5
+    Light:
+      Color:
         - 0.8
-        - 0.0
-      - Rotation
-      -
-        - 0.0
-        - 0.0
-        - 0.0
-      - Scale
-      -
+        - 0.6
+        - 0.6
         - 1.0
-        - 1.0
-        - 1.0
-    UUID: 73b27d6e-e401-4e0d-bf58-ae037145c526
-  -
-    Active: true
-    MeshFilter:
-      Materials:
-        - 415d1d5b-b186-4a32-a5a7-d5b43618e501
-        - SubCube
-      Names: []
-      UUID: 0fe2f9d7-4237-4612-b7a3-c083b503a6cb
-    Tag: NewCube2
+      Inner Radius: 5.0
+      Outer Radius: 30.0
+      Position:
+        - 0.0
+        - 1.5
+        - 1.5
+      Spot Direction:
+        - 0.0
+        - -1.0
+        - 0.0
+      Type: Point
+    Tag: Point Light
     Transform:
-      - Position
-      -
-        - -3.0
-        - -1.6
-        - 0.0
-      - Rotation
       -
         - 0.0
-        - 1.6
         - 0.0
-      - Scale
+        - 0.0
+      -
+        - 0.0
+        - 0.0
+        - 0.0
       -
         - 1.0
-        - 11.4
         - 1.0
-    UUID: 99cf5715-df71-4a23-8e00-de3a6e53310a
+        - 1.0
+    UUID: 5f309c86-6ee0-4d85-a662-92c898a9afa2
 Name: Scene
-No. Entt: 3
-Resource: []
+No. Entt: 2
+Resource:
+  -
+    Path: Assets/Textures/default_metallic.png
+    Type: 2
+    UUID: 41685bf0-b8f5-4d50-b868-912ebd18eca4
+  -
+    Path: Assets/Textures/default_ambient_occlusion.png
+    Type: 2
+    UUID: efd90c7f-06bd-48a4-87bb-8d6bbf050000
+  -
+    Path: Assets/Textures/default_diffuse.png
+    Type: 2
+    UUID: 5d987582-e5f9-43f4-a813-bbaa8c475660
+  -
+    Path: Assets/Textures/default_normal.png
+    Type: 2
+    UUID: 21242ed0-1478-4b18-ae19-51bd247a26d8
+  -
+    Path: Assets/Textures/default_roughness.png
+    Type: 2
+    UUID: 9abe49e8-7fe0-49cc-a5a7-c8a752106b5c
+  -
+    Path: Assets/Icons/plus.png
+    Type: 2
+    UUID: 4de9e93a-3c8f-46ee-ad68-9faaac6c67b9
+  -
+    Path: Assets/Icons/addNew.png
+    Type: 2
+    UUID: 1bd659e2-6830-45bf-a1a7-6efc7f375360
+  -
+    Path: Assets/Icons/duplicate.png
+    Type: 2
+    UUID: 392b236d-5445-4aba-9ebb-eaea03ee85f4
+  -
+    Path: Assets/Icons/x.png
+    Type: 2
+    UUID: 8e68f3ac-ca80-4e7a-9267-a8534d89f30d
+  -
+    Path: Assets/Icons/open.png
+    Type: 2
+    UUID: 3d8f5e64-f043-4526-99f9-eeb304b62c95
+  -
+    Path: Assets/Textures/Rusty Metal_4k/diff.png
+    Type: 2
+    UUID: d953a58e-f77a-4de8-9f4d-dd6e80436e17
+  -
+    Path: Assets/Textures/Rusty Metal_4k/normal.png
+    Type: 2
+    UUID: 6c2e4e48-759a-4af3-b7c7-842b5bf96cc4
+  -
+    Path: Assets/Textures/Rusty Metal_4k/ao.png
+    Type: 2
+    UUID: 4a771a01-ca9b-4495-8159-91c1938e1d12
+  -
+    Path: Assets/Textures/Rusty Metal_4k/roughness.png
+    Type: 2
+    UUID: dad009c3-f30e-4fc7-920b-615b2d031f46
+  -
+    Path: Assets/Textures/Rusty Metal_4k/metallic.png
+    Type: 2
+    UUID: 8207d9a0-68f3-485a-b65b-59ce73ac552e
+  -
+    Path: Cube.mesh
+    Type: 0
+    UUID: 33b68157-046d-4158-bda4-3f2d6a418877
+  -
+    Path: Plane.mesh
+    Type: 0
+    UUID: 2f121af1-5f81-4042-b2fa-cd9e24730a4b
+  -
+    Path: Assets/Environment Maps/Skybox/skybox.txt
+    Type: 0
+    UUID: 9c34e7be-b4e4-470f-b8b4-d29c093e16b3

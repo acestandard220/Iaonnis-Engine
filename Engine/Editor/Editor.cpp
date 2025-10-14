@@ -69,99 +69,77 @@ namespace Iaonnis
         GeneralWindow::Initialize(this);
     }
 
+    //Docking Data
+
+
     void Iaonnis::Editor::OnUpdate(Renderer3D::RendererStatistics stats, uint32_t r)
     {
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
         renderOut = r;
-        ImGui_ImplOpenGL3_NewFrame();
-        ImGui_ImplGlfw_NewFrame();
-        ImGui::NewFrame();
-
-        static bool dockspaceOpen = true;
-        static bool opt_fullscreen = true;
-        static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_None;
-
-        ImGuiWindowFlags window_flags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
-        if (opt_fullscreen)
         {
-            const ImGuiViewport* viewport = ImGui::GetMainViewport();
-            ImGui::SetNextWindowPos(viewport->Pos);
-            ImGui::SetNextWindowSize(viewport->Size);
-            ImGui::SetNextWindowViewport(viewport->ID);
-            ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
-            ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
-            window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
-            window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
+            SCOPE_TIMER("DOCKING_INIT");
+
+            ImGui_ImplOpenGL3_NewFrame();
+            ImGui_ImplGlfw_NewFrame();
+            ImGui::NewFrame();
+
+            static bool dockspaceOpen = true;
+            static bool opt_fullscreen = true;
+            static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_None;
+
+            static ImGuiWindowFlags window_flags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
+
+            if (opt_fullscreen)
+            {
+                const ImGuiViewport* viewport = ImGui::GetMainViewport();
+                ImGui::SetNextWindowPos(viewport->Pos);
+                ImGui::SetNextWindowSize(viewport->Size);
+                ImGui::SetNextWindowViewport(viewport->ID);
+                ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+                ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+                window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
+                window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
+            }
+
+            if (dockspace_flags & ImGuiDockNodeFlags_PassthruCentralNode)
+                window_flags |= ImGuiWindowFlags_NoBackground;
+
+            ImGui::Begin("##DockSpace", &dockspaceOpen, window_flags);
+            ImGui::PopStyleVar(2);
+
+            ImGuiIO& io = ImGui::GetIO();
+            auto& style = ImGui::GetStyle();
+            float originalWindowMinX = style.WindowMinSize.x;
+            style.WindowMinSize.x = 420.0f;
+            if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable)
+            {
+                ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
+                ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
+            }
+            style.WindowMinSize.x = originalWindowMinX;
         }
 
-        if (dockspace_flags & ImGuiDockNodeFlags_PassthruCentralNode)
-            window_flags |= ImGuiWindowFlags_NoBackground;
-
-        ImGui::Begin("##DockSpace", &dockspaceOpen, window_flags);
-        ImGui::PopStyleVar(2);
-
-        ImGuiIO& io = ImGui::GetIO();
-        auto& style = ImGui::GetStyle();
-        float originalWindowMinX = style.WindowMinSize.x;
-        style.WindowMinSize.x = 420.0f;
-        if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable)
-        {
-            ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
-            ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
-        }
-        style.WindowMinSize.x = originalWindowMinX;
-
-        ImGui::Begin("Debug", nullptr, ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoResize);
-
-        float contentRegionAvailableX = ImGui::GetContentRegionAvail().x;
-
-        ImGui::PushStyleVar(ImGuiStyleVar_SeparatorTextAlign, ImVec2(0.5, 0.5));
-        ImGui::SeparatorText("Frame Stats");
-
-        static float history[100];
-        static int offset = 0;
-        ImGuiEx::PlotLines("Frame Per Second", history, offset, 100, io.Framerate, ImVec2(0, 120), ImVec2(contentRegionAvailableX, 80));
-
-        static float dtHistory[100];
-        static int dtOffset = 0;
-        ImGuiEx::PlotLines("Delta Time(ms)", dtHistory, dtOffset, 100, 1000/io.Framerate, ImVec2(0, 120), ImVec2(contentRegionAvailableX, 80));
-
-        ImGui::SeparatorText("Rendering");
-        ImGui::Text("Draw Calls: %d", stats.nDrawCalls);
-        ImGui::Text("Vertices: %d", stats.nRenderedVertices);
-        ImGui::Text("Indices: %d", stats.nRenderedIndices);
-
-        ImGui::SeparatorText("Memory");
-        ImGui::Text("Textures: %.3f MB", (float)stats.totalTextureBufferSize / (1024.0f * 1024.0f));
-
-        ImGui::SeparatorText("Upload Times");
-        ImGui::Text("Scene Upload: %.3f ms", stats.sceneUploadTime);
-        ImGui::Text("Material Upload: %.3f ms", stats.materialUploadTime);
-
-        ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
-
-        ImGui::PopStyleVar(1);
-
-      
-
-
-        ImGui::End();
+#ifdef _DEBUG
+        DebugWindow(stats);
+#endif 
 
         menubar->OnUpdate();
 
+        ImGuiIO& io = ImGui::GetIO();
         float dt = io.DeltaTime;
 
-        for (auto& panel : panels)
         {
-            panel->OnUpdate(dt);
+            SCOPE_TIMER("PANELS_ON_RENDER"); //5ms-6ms
+            for (auto& panel : panels)
+            {
+                SCOPE_TIMER(panel->GetName());
+                panel->OnUpdate(dt);
+            }
         }
 
 
         ImGui::End(); //##DockSpace
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-
 
         io = ImGui::GetIO(); (void)io;
         if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
@@ -192,7 +170,7 @@ namespace Iaonnis
         return true;
     }
 
-    void Editor::DeselectAll()
+    void Iaonnis::Editor::Deselect()
     {
         SelectEntt(nullptr);
         SetSelectionIndex(-1);
@@ -210,9 +188,49 @@ namespace Iaonnis
         scene = std::make_shared<Scene>("Scene");
     }
 
+    void Editor::DebugWindow(Renderer3D::RendererStatistics stats)
+    {
+        SCOPE_TIMER("DEBUG WINDOW");
+
+        ImGuiIO& io = ImGui::GetIO();
+        ImGui::Begin("Debug", nullptr, ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoResize);
+
+        float contentRegionAvailableX = ImGui::GetContentRegionAvail().x;
+
+        ImGui::PushStyleVar(ImGuiStyleVar_SeparatorTextAlign, ImVec2(0.5, 0.5));
+        ImGui::SeparatorText("Frame Stats");
+
+        static float history[100];
+        static int offset = 0;
+        ImGuiEx::PlotLines("Frame Per Second", history, offset, 100, io.Framerate, ImVec2(0, 120), ImVec2(contentRegionAvailableX, 80));
+
+        static float dtHistory[100];
+        static int dtOffset = 0;
+        ImGuiEx::PlotLines("Delta Time(ms)", dtHistory, dtOffset, 100, 1000 / io.Framerate, ImVec2(0, 120), ImVec2(contentRegionAvailableX, 80));
+
+        ImGui::SeparatorText("Rendering");
+        ImGui::Text("Draw Calls: %d", stats.nDrawCalls);
+        ImGui::Text("Vertices: %d", stats.nRenderedVertices);
+        ImGui::Text("Indices: %d", stats.nRenderedIndices);
+
+        ImGui::SeparatorText("Memory");
+        ImGui::Text("Textures: %.3f MB", (float)stats.totalTextureBufferSize / (1024.0f * 1024.0f));
+
+        ImGui::SeparatorText("Upload Times");
+        ImGui::Text("Scene Upload: %.3f ms", stats.sceneUploadTime);
+        ImGui::Text("Material Upload: %.3f ms", stats.materialUploadTime);
+
+        ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
+
+        ImGui::PopStyleVar(1);
+
+        ImGui::End();
+    }
+
     void Editor::InitializeDefaultPanels()
     {
         menubar = std::make_unique<MenuBar>(this);
+
         panels.emplace_back(std::make_unique<SceneHierachy>(this));
         panels.emplace_back(std::make_unique<Inspector>(this));
         panels.emplace_back(std::make_unique<ViewPort>(this));

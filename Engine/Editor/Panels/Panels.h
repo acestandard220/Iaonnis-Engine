@@ -10,6 +10,8 @@ namespace Iaonnis
 			EditorPanel(Editor* editor);
 			virtual ~EditorPanel();
 			
+			virtual std::string GetName() { return name; }
+
 			virtual void OnUpdate(float dt) = 0;
 
 		protected:

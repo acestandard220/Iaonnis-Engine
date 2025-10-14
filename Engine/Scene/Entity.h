@@ -214,6 +214,11 @@ namespace Iaonnis
 
 		bool* GetActive() { return &active; }
 
+		bool operator==(const Entity& other)const
+		{
+			return entity == other.entity;
+		}
+
 		bool active;
 	protected:
 		Entity* parent = nullptr;

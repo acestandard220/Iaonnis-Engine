@@ -71,7 +71,7 @@ namespace Iaonnis
 				}
 			}
 
-			IAONNIS_LOG_ERROR("Failed to find resource. (Path = %s)", path.string().c_str());
+			//IAONNIS_LOG_ERROR("Failed to find resource. (Path = %s)", path.string().c_str());
 			return nullptr;
 		}
 
@@ -85,7 +85,7 @@ namespace Iaonnis
 					return std::static_pointer_cast<T>(resource);
 			}
 
-			IAONNIS_LOG_ERROR("Failed to find resource. (Name = %s)", name.c_str());
+			//IAONNIS_LOG_ERROR("Failed to find resource. (Name = %s)", name.c_str());
 			return nullptr;
 		}
 
@@ -110,7 +110,7 @@ namespace Iaonnis
 				return std::static_pointer_cast<T>(resources[id]);
 			}
 
-			IAONNIS_LOG_ERROR("Failed to find resource. (UUID = %s)", UUIDFactory::uuidToString(id).c_str());
+			//IAONNIS_LOG_ERROR("Failed to find resource. (UUID = %s)", UUIDFactory::uuidToString(id).c_str());
 			return nullptr;
 		}
 
@@ -125,6 +125,7 @@ namespace Iaonnis
 		template<class T>
 		std::shared_ptr<T> load(filespace::filepath path)
 		{
+			STIMER_START(loadTime);
 			if (!filespace::exists(path))
 			{
 				IAONNIS_LOG_ERROR("Invalid path provided. (Path = %s)", path.string().c_str());
@@ -141,6 +142,9 @@ namespace Iaonnis
 			std::shared_ptr<T> newResource = std::make_shared<T>();
 			newResource->load(path);
 			cache(path, newResource);
+
+			STIMER_STOP(loadTime);
+			STIMER_PRINT(loadTime);
 			return newResource;
 		}
 
@@ -214,8 +218,6 @@ namespace Iaonnis
 		std::shared_ptr<ImageTexture> GetDefaultByTextureType(TextureMapType type);
 
 		static std::shared_ptr<ImageTexture> GetIcon(IconType iconType);
-
-
 	private:
 			void LoadDefaultIcons();
 			

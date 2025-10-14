@@ -11,11 +11,10 @@ namespace Iaonnis
 			SceneHierachy(Editor* editor);
 			virtual ~SceneHierachy();
 
-			void function1(Entity entity);
-
 			virtual void OnUpdate(float dt)override;
 		private:
 			void OnPopUpContext();
+			void OnItemPopUpContext();
 
 	};
 

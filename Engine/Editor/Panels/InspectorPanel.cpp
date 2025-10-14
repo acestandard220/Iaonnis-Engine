@@ -365,6 +365,7 @@ namespace Iaonnis
 
 	void Inspector::OnUpdate(float dt)
 	{
+		SCOPE_TIMER(__FUNCTION__);
 		scene = editor->getScene();
 		cache = scene->getCache().get();
 

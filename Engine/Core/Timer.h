@@ -7,6 +7,7 @@ namespace Iaonnis {
 #define IAONNIS_START_TIMER CPUTimer::timer().start()
 #define IAONNIS_STOP_TIMER  CPUTimer::timer().stop()
 #define IAONNIS_RESET_TIMER CPUTimer::timer().reset()
+#define IAONNIS_GET_LAST_TIMER_DURATION(x) (x) = CPUTimer::timer().durationMs()
 #define IAONNIS_SYS_TIME(t) CPUTimer::timer().getSystemTime(t)
 
 	class ITimer

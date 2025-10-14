@@ -61,7 +61,6 @@ namespace Iaonnis
 	{
 		UUID meshID;
 
-		//std::vector<UUID> materialID;
 		std::unordered_map<UUID, std::list<int>> materialIDMap;
 		std::vector<std::string> names;
 
@@ -87,6 +86,7 @@ namespace Iaonnis
 		Spot
 	};
 
+
 	struct LightComponent : public DerivedComponent
 	{
 		LightType type;
@@ -99,10 +99,21 @@ namespace Iaonnis
 		float innerRadius;
 		float outerRadius;
 		glm::vec3 spotDirection;
-		
+
 		LightComponent()
 			:type(LightType::Point), color(1.0f, 1.0f, 1.0f, 1.0f), innerRadius(5.0f), outerRadius(30.0f),spotDirection(0.0f,-1.0f,0.0f)
 		{}
 		LightComponent(const LightComponent& other) = default;
 	};
+
+	static std::string GetLightTypeString(LightType type)
+	{
+		switch (type)
+		{
+			case LightType::Directional:return "Directional";
+			case LightType::Point:return "Point";
+			case LightType::Spot:return "Spot";
+			default: return "Unknown";
+		}
+	}
 }

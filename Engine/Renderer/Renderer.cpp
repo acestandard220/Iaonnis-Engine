@@ -144,6 +144,7 @@ namespace Iaonnis {
 			uint32_t environmentProgram;
 
 			uint32_t modelSSBO;
+
 			//uint32_t cameraUBO;
 
 			uint32_t diffuseSSBO;
@@ -162,10 +163,10 @@ namespace Iaonnis {
 			FramebufferHandle fbo;
 			FramebufferHandle gBuffer;
 
-			static const int MAX_VERTEX = 300000;
-			static const int MAX_INDICES = 500000;
+			static const int MAX_VERTEX = 3000000;
+			static const int MAX_INDICES = 5000000;
 
-			const int MAX_DRAW_COMMANDS = 10;
+			const int MAX_DRAW_COMMANDS = 300;
 			int commandPtr = 0;
 
 			int indexCount = 0;
@@ -173,7 +174,7 @@ namespace Iaonnis {
 			int currentVertexCount = 0;
 			int currentIndexCount = 0;
 
-			static const int MAX_MATERIALS = 100;
+			static const int MAX_MATERIALS = 300;
 			GLuint64 diffuseUploadArr[MAX_MATERIALS];
 			GLuint64 normalUploadArr[MAX_MATERIALS];
 			GLuint64 aoUploadArr[MAX_MATERIALS];
@@ -182,7 +183,7 @@ namespace Iaonnis {
 
 			MaterialUpload materialUploadArr[MAX_MATERIALS];
 
-			static const int MAX_TYPE_OF_LIGHT = 100;
+			static const int MAX_TYPE_OF_LIGHT = 300;
 			DirectionalLightUpload directionalLightArr[MAX_TYPE_OF_LIGHT];
 			SpotLightUpload spotLightArr[MAX_TYPE_OF_LIGHT];
 			PointLightUpload pointLightArr[MAX_TYPE_OF_LIGHT];
@@ -328,6 +329,8 @@ namespace Iaonnis {
 
 		void Iaonnis::Renderer3D::Initialize(uint32_t program)
 		{
+			SCOPE_TIMER(__FUNCTION__);
+
 			//====================Shader Creation================================================
 
 			rendererData.lightProgram = CreateShaderProgram("Assets/Shaders/lightVert.glsl", "Assets/Shaders/pbrFragment.glsl");
@@ -522,6 +525,8 @@ namespace Iaonnis {
 
 		void Shutdown()
 		{
+			SCOPE_TIMER(__FUNCTION__);
+
 			glDeleteVertexArrays(1, &rendererData.vao);
 			glDeleteBuffers(1, &rendererData.vbo);
 			glDeleteBuffers(1, &rendererData.ebo);
@@ -587,8 +592,9 @@ namespace Iaonnis {
 
 		void Iaonnis::Renderer3D::UploadScene(Scene* scene)
 		{
-			CPUTimer timer;
-			timer.start();
+			STIMER_START(sceneUpload);
+
+			ENABLE_SCOPE_TIMER_PRINT
 
 			resetGeometryPtrs();
 			std::shared_ptr<ResourceCache> cache = scene->getCache();
@@ -598,8 +604,10 @@ namespace Iaonnis {
 			{
 				UUID materialID = material->GetID();
 				bool inUse = false;
+
 				for (auto& entt : scene->getEntitiesWith<MeshFilterComponent>())
 				{
+					SCOPE_TIMER("In the transform loop" + entt.GetTag());
 					if (!entt.active)
 					{
 						IAONNIS_LOG_INFO("Skipping render of inactive entity.");
@@ -625,6 +633,7 @@ namespace Iaonnis {
 						SubMesh* subMesh = meshResource->getSubMesh(index);
 						Vertice* subMeshVertices = meshResource->getSubMeshVerticeStart(index);
 
+						
 						std::vector<Vertice> transformedVertices(subMesh->vertexCount);
 						for (int v = 0; v < subMesh->vertexCount; v++)
 						{
@@ -634,6 +643,7 @@ namespace Iaonnis {
 							transformedVertices[v].tangent = glm::normalize(glm::mat3(glm::transpose(glm::inverse(meshTransformMatrix))) * transformedVertices[v].tangent);
 
 							transformedVertices[v].p = transformedVec4;
+							//transformedVertices[v].p.x = 10;
 						}
 
 						DrawData data;
@@ -651,47 +661,12 @@ namespace Iaonnis {
 				if (inUse)
 				{
 					closeDrawCommands();
-					/*auto diffuseResource = cache->getByUUID<ImageTexture>(material->getDiffuseID());
-					auto normalResource = cache->getByUUID<ImageTexture>(material->getNormalID());
-					auto aoResource = cache->getByUUID<ImageTexture>(material->getAoID());
-					auto roughnessResource = cache->getByUUID<ImageTexture>(material->getRoughnessID());
-					auto metallicResource = cache->getByUUID<ImageTexture>(material->getMetallicID());
-
-					auto diffuseHandle = diffuseResource->getTextureHandle().handle;
-					auto normalHandle = normalResource->getTextureHandle().handle;
-					auto aoHandle = aoResource->getTextureHandle().handle;
-					auto roughnessHandle = roughnessResource->getTextureHandle().handle;
-					auto metallicHandle = metallicResource->getTextureHandle().handle;
-
-					MaterialUpload mtlUpload;
-					mtlUpload.color = material->getColor();
-					mtlUpload.uvScale = glm::vec4(material->getUVScale(), material->getNormalStrength(), 1.0f);
-
-					int poolIndex = rendererData.materialUploadPtr;
-					rendererData.diffuseUploadArr[poolIndex] = diffuseHandle;
-					rendererData.normalUploadArr[poolIndex] = normalHandle;
-					rendererData.aoUploadArr[poolIndex] = aoHandle;
-					rendererData.roughnessUploadArr[poolIndex] = roughnessHandle;
-					rendererData.metallicUploadArr[poolIndex] = metallicHandle;
-
-					rendererData.materialUploadArr[rendererData.materialUploadPtr] = mtlUpload;
-					rendererData.materialUploadPtr++;
-
-
-					//Stats
-					RendererStats.totalTextureBufferSize += diffuseResource->GetBytSize();
-					RendererStats.totalTextureBufferSize += normalResource->GetBytSize();
-					RendererStats.totalTextureBufferSize += aoResource->GetBytSize();
-					RendererStats.totalTextureBufferSize += roughnessResource->GetBytSize();
-					RendererStats.totalTextureBufferSize += metallicResource->GetBytSize();*/
 				}
 			}
 
-			//UploadMaterialArray(scene);
-			//UploadMaterialsToGPU();
-
-			timer.stop();
-			RendererStats.sceneUploadTime = timer.durationMs();
+			STIMER_STOP(sceneUpload);
+			
+			RendererStats.sceneUploadTime = sceneUpload.durationMs();
 		}
 
 		void UploadSceneNoBatching(Scene* scene)
@@ -733,17 +708,36 @@ namespace Iaonnis {
 
 						auto diffuseResource = cache->getByUUID<ImageTexture>(material->getDiffuseID());
 						auto normalResource = cache->getByUUID<ImageTexture>(material->getNormalID());
+						auto aoResource = cache->getByUUID<ImageTexture>(material->getAoID());
+						auto roughnessResource = cache->getByUUID<ImageTexture>(material->getRoughnessID());
+						auto metallicResource = cache->getByUUID<ImageTexture>(material->getMetallicID());
+
 						auto diffuseHandle = diffuseResource->getTextureHandle().handle;
 						auto normalHandle = normalResource->getTextureHandle().handle;
+						auto aoHandle = aoResource->getTextureHandle().handle;
+						auto roughnessHandle = roughnessResource->getTextureHandle().handle;
+						auto metallicHandle = metallicResource->getTextureHandle().handle;
 
 						MaterialUpload mtlUpload;
 						mtlUpload.color = material->getColor();
 						mtlUpload.uvScale = glm::vec4(material->getUVScale(), material->getNormalStrength(), 1.0f);
 
-						rendererData.diffuseUploadArr[rendererData.materialUploadPtr] = diffuseHandle;
-						rendererData.normalUploadArr[rendererData.materialUploadPtr] = normalHandle;
+						int poolIndex = rendererData.materialUploadPtr;
+						rendererData.diffuseUploadArr[poolIndex] = diffuseHandle;
+						rendererData.normalUploadArr[poolIndex] = normalHandle;
+						rendererData.aoUploadArr[poolIndex] = aoHandle;
+						rendererData.roughnessUploadArr[poolIndex] = roughnessHandle;
+						rendererData.metallicUploadArr[poolIndex] = metallicHandle;
+
 						rendererData.materialUploadArr[rendererData.materialUploadPtr] = mtlUpload;
 						rendererData.materialUploadPtr++;
+
+						//Stats
+						RendererStats.totalTextureBufferSize += diffuseResource->GetBytSize();
+						RendererStats.totalTextureBufferSize += normalResource->GetBytSize();
+						RendererStats.totalTextureBufferSize += aoResource->GetBytSize();
+						RendererStats.totalTextureBufferSize += roughnessResource->GetBytSize();
+						RendererStats.totalTextureBufferSize += metallicResource->GetBytSize();
 					}
 				}
 			}
@@ -753,6 +747,7 @@ namespace Iaonnis {
 
 		void Renderer3D::UploadMaterialArray(Scene* scene)
 		{
+			SCOPE_TIMER("MATERIAL_ARRAY_UPLOAD");
 			resetMaterialPtrs();
 
 			auto cache = scene->getCache();
@@ -802,8 +797,7 @@ namespace Iaonnis {
 
 		void Iaonnis::Renderer3D::UploadMaterialsToGPU()
 		{
-			CPUTimer timer;
-			timer.start();
+			SCOPE_TIMER("MATERIAL_GPU_UPLOAD");
 
 			glBindBuffer(GL_UNIFORM_BUFFER, rendererData.materialUBO);
 			glBufferSubData(GL_UNIFORM_BUFFER,0,rendererData.materialUploadPtr * sizeof(MaterialUpload),&rendererData.materialUploadArr[0]);
@@ -819,12 +813,12 @@ namespace Iaonnis {
 			glBindBuffer(GL_SHADER_STORAGE_BUFFER, rendererData.metallicSSBO);
 			glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, rendererData.materialUploadPtr * sizeof(GLuint64), &rendererData.metallicUploadArr[0]);
 
-			timer.stop();
-			RendererStats.materialUploadTime = timer.durationMs();
 		}
 
 		void Iaonnis::Renderer3D::UploadLightData(Scene* scene)
 		{
+			SCOPE_TIMER("LIGHT_UPLOAD");
+
 			for (auto& entt : scene->getEntitiesWith<LightComponent>())
 			{
 				auto& lightComp = entt.GetComponent<LightComponent>();
@@ -867,17 +861,21 @@ namespace Iaonnis {
 			
 			rendererData.lightMeta.viewPos = glm::vec4(scene->GetSceneCamera()->getFrustrum().position, 1.0f);
 
-			glBindBuffer(GL_SHADER_STORAGE_BUFFER, rendererData.directionalLightSSBO);
-			glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, sizeof(DirectionalLightUpload) * rendererData.lightMeta.nDirectionLight, &rendererData.directionalLightArr[0]);
+			{
+				//SCOPE_TIMER("LIGHT_GPU_UPLOAD");
 
-			glBindBuffer(GL_SHADER_STORAGE_BUFFER, rendererData.spotLigtSSBO);
-			glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, sizeof(SpotLightUpload) * rendererData.lightMeta.nSpotLight, &rendererData.spotLightArr[0]);
+				glBindBuffer(GL_SHADER_STORAGE_BUFFER, rendererData.directionalLightSSBO);
+				glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, sizeof(DirectionalLightUpload) * rendererData.lightMeta.nDirectionLight, &rendererData.directionalLightArr[0]);
 
-			glBindBuffer(GL_SHADER_STORAGE_BUFFER, rendererData.pointLigtSSBO);
-			glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, sizeof(PointLightUpload) * rendererData.lightMeta.nPointLight, &rendererData.pointLightArr[0]);
+				glBindBuffer(GL_SHADER_STORAGE_BUFFER, rendererData.spotLigtSSBO);
+				glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, sizeof(SpotLightUpload) * rendererData.lightMeta.nSpotLight, &rendererData.spotLightArr[0]);
 
-			glBindBuffer(GL_UNIFORM_BUFFER, rendererData.lightMetaUBO);
-			glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(LightMeta), &rendererData.lightMeta);
+				glBindBuffer(GL_SHADER_STORAGE_BUFFER, rendererData.pointLigtSSBO);
+				glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, sizeof(PointLightUpload) * rendererData.lightMeta.nPointLight, &rendererData.pointLightArr[0]);
+
+				glBindBuffer(GL_UNIFORM_BUFFER, rendererData.lightMetaUBO);
+				glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(LightMeta), &rendererData.lightMeta);
+			}
 		}
 
 		void Iaonnis::Renderer3D::LightPass(Scene* scene)
@@ -934,6 +932,8 @@ namespace Iaonnis {
 
 		void submitDrawCommandData(DrawData data)
 		{
+			//SCOPE_TIMER(__FUNCTION__);
+
 			//Transform Index Space: To be continious of the already batch vertices
 			void* indexPtr = data.indexPtr;
 
@@ -968,6 +968,8 @@ namespace Iaonnis {
 
 		void closeDrawCommands()
 		{
+			SCOPE_TIMER(__FUNCTION__);
+
 			DrawElementsIndirectCommand cm;
 			cm.baseInstance = 0;
 			cm.baseVertex = rendererData.vertexCount;
@@ -985,10 +987,13 @@ namespace Iaonnis {
 			rendererData.commandPtr++;
 
 			RendererStats.nDrawCalls++;
+
 		}
 
 		void Iaonnis::Renderer3D::drawCommands(Scene* scene, uint32_t program)
 		{
+			SCOPE_TIMER(__FUNCTION__);
+
 			IGPUResource::bindFramebuffer(rendererData.gBuffer);
 
 			glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
@@ -1009,6 +1014,8 @@ namespace Iaonnis {
 
 		void Iaonnis::Renderer3D::resetGeometryPtrs()
 		{
+			SCOPE_TIMER(__FUNCTION__);
+
 			rendererData.commandPtr = 0;
 			rendererData.currentVertexCount = 0;
 			rendererData.currentIndexCount = 0;
@@ -1035,6 +1042,8 @@ namespace Iaonnis {
 
 		void RenderScene(Scene* scene, uint32_t program)
 		{
+			SCOPE_TIMER(__FUNCTION__);
+
 			if (!scene)
 			{
 				return;
@@ -1067,6 +1076,8 @@ namespace Iaonnis {
 
 		void OnViewFrameResize(Event& event)
 		{
+			SCOPE_TIMER(__FUNCTION__);
+
 			FrameResizeEvent* frameResizeEvent = (FrameResizeEvent*)&event;
 
 			glViewport(0, 0, frameResizeEvent->frameSizeX, frameResizeEvent->frameSizeY);

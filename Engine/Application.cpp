@@ -178,11 +178,22 @@ namespace Iaonnis
 	{
 		while (!glfwWindowShouldClose(window))
 		{
-			scene->OnUpdate(0.2f);
+			DISABLE_SCOPE_TIMER_PRINT
+			{
+				SCOPE_TIMER("SCENE_ONUPDATE");
+				scene->OnUpdate(0.2f);
+			}
 
-			Renderer3D::RenderScene(scene.get(), program);
+			{
+				SCOPE_TIMER("RENDER_ONLY");
+				Renderer3D::RenderScene(scene.get(), program);
+			}
 
-			editor->OnUpdate(Renderer3D::GetRenderStats(), Renderer3D::GetRenderOutput());
+			//ENABLE_SCOPE_TIMER_PRINT
+			{
+				SCOPE_TIMER("EDITOR_UPDATE");
+				editor->OnUpdate(Renderer3D::GetRenderStats(), Renderer3D::GetRenderOutput());
+			}
 
 			glfwSwapBuffers(window);
 			glfwPollEvents();

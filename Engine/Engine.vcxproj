@@ -136,6 +136,7 @@
     <ClCompile Include="Application.cpp" />
     <ClCompile Include="Core\Event.cpp" />
     <ClCompile Include="Core\Log.cpp" />
+    <ClCompile Include="Core\SimpleTimer.cpp" />
     <ClCompile Include="Core\Timer.cpp" />
     <ClCompile Include="Core\Utils.cpp" />
     <ClCompile Include="Core\UUID.cpp" />
@@ -178,8 +179,10 @@
     <ClInclude Include="Core\Core.h" />
     <ClInclude Include="Core\Defines.h" />
     <ClInclude Include="Core\Event.h" />
+    <ClInclude Include="Core\Job.h" />
     <ClInclude Include="Core\Log.h" />
     <ClInclude Include="Core\pch.h" />
+    <ClInclude Include="Core\SimpleTimer.h" />
     <ClInclude Include="Core\Timer.h" />
     <ClInclude Include="Core\Utils.h" />
     <ClInclude Include="Core\UUID.h" />

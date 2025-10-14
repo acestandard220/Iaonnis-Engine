@@ -48,7 +48,7 @@ namespace Iaonnis
 		void SetSelectionType(SelectionType type) { SelectionData.selectionType = type; }
 		void SetSelectionIndex(int index) { SelectionData.selectionIndex = index; }
 		int  GetSelectionIndex() { return SelectionData.selectionIndex; }
-		void DeselectAll();
+		void Deselect();
 
 		void SetViewPortAction(ViewPortAction action) { viewPortAction = action;}
 		ViewPortAction GetViewPortAction() { return viewPortAction; }
@@ -60,6 +60,8 @@ namespace Iaonnis
 
 		uint32_t renderOut; //temp
 	private:
+		void DebugWindow(Renderer3D::RendererStatistics stats);
+
 		void InitializeDefaultPanels();
 
 	private:

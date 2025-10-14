@@ -4,6 +4,8 @@
 namespace Iaonnis
 {
     Entity* g = nullptr;
+   
+
     Iaonnis::Scene::Scene(const std::string& name)
         :cache(cache),name(name), displaySize(glm::vec2(800.0f, 800.0f))
     {
@@ -11,49 +13,10 @@ namespace Iaonnis
         camera = std::make_shared<Camera>("Main Camera", glm::vec3(3.0f, 3.0f, 8.0f), displaySize.x, displaySize.y);
         environment = cache->load<Environment>("Assets/Environment Maps/Skybox/skybox.txt");
 
-        auto cubeEntity = addCube("Cube1");
-        //addMesh("Assets/obj_sphere.obj", "Sphere");
-        //addDirectionalLight(glm::vec3(1.0f, 2.0f, 1.0f));
         addPointLight();
-
-        //auto grayRockDiff = cache->load<ImageTexture>("Assets\\Textures\\Gray Rocks\\GrayRocksDiff_2k.png");
-        //auto grayRockNorm = cache->load<ImageTexture>("Assets\\Textures\\Gray Rocks\\GrayRocksNorGl_2k.png");
-        //auto grayRockAo   = cache->load<ImageTexture>("Assets\\Textures\\Gray Rocks\\GrayRocksAO_2K.png");
-        //auto grayRockRough = cache->load<ImageTexture>("Assets/Textures/Gray Rocks/GrayRocksRough_2k.png");
-        //auto grayRockMetallic = cache->load<ImageTexture>("Assets/Textures/default_metallic.png");
-        //
-        //auto grayRockMtl = cache->create<Material>("Gray Rock Material.yaml");
-        //grayRockMtl->setDiffuseMap(grayRockDiff->GetID());
-        //grayRockMtl->setNormalMap(grayRockNorm->GetID());
-        //grayRockMtl->setAoMap(grayRockAo->GetID());
-        //grayRockMtl->setRoughnessMap(grayRockRough->GetID());
-        //grayRockMtl->setMetallicMap(grayRockMetallic->GetID());
-
-        auto rustyMetalDiff = cache->load<ImageTexture>("Assets/Textures/Rusty Metal_4k/diff.png");
-        auto rustyMetalNorm = cache->load<ImageTexture>("Assets/Textures/Rusty Metal_4k/normal.png");
-        auto rustyMetalAo = cache->load<ImageTexture>("Assets/Textures/Rusty Metal_4k/ao.png");
-        auto rustyMetalRough = cache->load<ImageTexture>("Assets/Textures/Rusty Metal_4k/roughness.png");
-        auto rustyMetalMetallic = cache->load<ImageTexture>("Assets/Textures/Rusty Metal_4k/metallic.png");
         
-        auto rustyMetalMtl = cache->create<Material>("Rusty Metal.yaml");
-        rustyMetalMtl;
-        rustyMetalMtl->setDiffuseMap(rustyMetalDiff->GetID());
-        rustyMetalMtl->setNormalMap(rustyMetalNorm->GetID());
-        rustyMetalMtl->setAoMap(rustyMetalAo->GetID());
-        rustyMetalMtl->setRoughnessMap(rustyMetalRough->GetID());
-        rustyMetalMtl->setMetallicMap(rustyMetalMetallic->GetID());
-
-        //cubeEntity.AssignMaterial(rustyMetalMtl->GetID(), 0);
-        AssignMaterial(cubeEntity.GetUUID(), rustyMetalMtl->GetID(), 0);
-
-
-        //addMesh("Assets/Models/Lion_Head_4k/LionHead.obj","BackPack");
-        addMesh("Assets/backpack.obj","BackPack");
-
         //Systems Init()
         systems.emplace_back(std::make_unique<TransformSystem>(&registry));
-
-
 
         EventBus::subscribe(EventType::RESIZE_EVENT, std::bind(&Scene::OnViewFrameResize, this, std::placeholders::_1));
     }
@@ -80,6 +43,8 @@ namespace Iaonnis
         entities.push_back(entity);
 
         OnEntityRegisteryModified();
+        OnMaterialModified();
+
         return entities.back();
     }
 
@@ -257,8 +222,11 @@ namespace Iaonnis
 
     void Scene::removeEntity(Entity entity)
     {
-        //removeFromVector<Entity>(entities, entity);
-        //registry.remove<entt::entity>(entity.GetBaseEntity());
+        removeFromVector<Entity>(entities, entity);
+        registry.destroy(entity.GetBaseEntity());
+
+        OnEntityRegisteryModified();
+        OnMaterialModified();
     }
 
     Entity& Scene::GetEntity(UUID id)
@@ -281,21 +249,16 @@ namespace Iaonnis
         fkyaml::node node{
             {"Name",name},
             {"No. Entt",entities.size()},
-            {"Entities",fkyaml::node::sequence()},
             {"Resource",fkyaml::node::sequence()}
         };
 
-        auto& entts = node["Entities"].as_seq();
-
-        //Note Attempting to write out Mesh filter comp even if it doesn't have one.
-        //It breaks the program during save.
+        std::vector<fkyaml::node> enttNodes;
         for (auto entt : entities)
         {
             auto idString = UUIDFactory::uuidToString(entt.GetUUID());
             auto tag = entt.GetTag();
             auto active = entt.GetActive();
             auto transform = entt.GetComponent<TransformComponent>();
-            auto meshFilter = entt.GetComponent<MeshFilterComponent>();
 
             fkyaml::node temp = {
                 {"UUID",idString},
@@ -304,46 +267,85 @@ namespace Iaonnis
                 {
                     "Transform",
                     {
-                        "Position",{transform.position.x,transform.position.y,transform.position.z},
-                        "Rotation",{transform.rotation.x,transform.rotation.y,transform.rotation.z},
-                        "Scale",{transform.scale.x,transform.scale.y,transform.scale.z}
-                    }
-                },
-                {
-                    "MeshFilter",
-                    {
-                        {"UUID", UUIDFactory::uuidToString(meshFilter.meshID)},
-                        {"Materials",fkyaml::node::sequence()},
-                        {"Names",fkyaml::node::sequence()}
+                        {transform.position.x,transform.position.y,transform.position.z},
+                        {transform.rotation.x,transform.rotation.y,transform.rotation.z},
+                        {transform.scale.x,transform.scale.y,transform.scale.z}
                     }
                 }
             };
 
-            /*if(entt.HasComponent<MeshFilterComponent>())
+            if (entt.HasComponent<MeshFilterComponent>())
             {
-                auto& mtlIDs = temp["MeshFilter"].as_map().at("Materials").as_seq();
-                for (auto mtlID : meshFilter.materialID)
+                auto meshFilter = entt.GetComponent<MeshFilterComponent>();
+                fkyaml::node meshFilterNode = {
+                    {"UUID", UUIDFactory::uuidToString(meshFilter.meshID)},
+                };
+
+                fkyaml::ordered_map<std::string, std::vector<int>> materialMapTemp;
+                for (auto& [mtl, dependants] : meshFilter.materialIDMap)
                 {
-                    mtlIDs.push_back(UUIDFactory::uuidToString(mtlID));
+                    for (auto dep : dependants)
+                        materialMapTemp[UUIDFactory::uuidToString(mtl)].push_back(dep);
                 }
+                meshFilterNode["Material"] = materialMapTemp;
 
-                auto& names = temp["MeshFilter"].as_map().at("Names").as_seq();
-                for (auto name : meshFilter.names)
+                std::vector<std::string> namesNode(entt.GetSubMeshCount());
+                int i = 0;
+                for (auto& name : meshFilter.names)
                 {
-                    mtlIDs.push_back(name);
+                    namesNode[i++] = name;
                 }
- 
-            }*/
+                meshFilterNode["Names"] = namesNode;
 
+                temp["MeshFilter"] = meshFilterNode;
+            }
 
+            if (entt.HasComponent<LightComponent>())
+            {
+                auto& lightComp = entt.GetComponent<LightComponent>();
+                fkyaml::node lightNode = {
+                    {"Type", GetLightTypeString(lightComp.type)},
+                    {"Color", {lightComp.color.x,lightComp.color.y,lightComp.color.z,lightComp.color.w} },
+                    {"Position", {lightComp.position.x,lightComp.position.y,lightComp.position.z} },
+                    {"Inner Radius", lightComp.innerRadius},
+                    {"Outer Radius", lightComp.outerRadius},
+                    {"Spot Direction", {lightComp.spotDirection.x, lightComp.spotDirection.y, lightComp.spotDirection.z}}
+                };
+
+                temp["Light"] = lightNode;
+            }
             
-            entts.emplace_back(temp);
+            enttNodes.emplace_back(temp);
+        }
+        node["Entities"] = enttNodes;
+
+        std::vector<fkyaml::node> resourceNodes;
+        for (auto& resource : cache->getByType<ImageTexture>(ResourceType::ImageTexture))
+        {
+            fkyaml::node resourceNode = {
+                {"Path",resource->getPath().string()},
+                {"Type",(int)resource->getType()},
+                {"UUID",UUIDFactory::uuidToString(resource->GetID())}
+            };
+            resourceNodes.push_back(resourceNode);
         }
 
+        for (auto& resource : cache->getByType<Mesh>(ResourceType::Mesh))
+        {
+            fkyaml::node resourceNode = {
+                {"Path",resource->getPath().string()},
+                {"Type",(int)resource->getType()},
+                {"UUID",UUIDFactory::uuidToString(resource->GetID())}
+            };
+            resourceNodes.push_back(resourceNode);
+        }
+        node["Resource"] = resourceNodes;
 
 
         std::ofstream file(path);
         file << node;
+
+        file.close();
     }
 
 }

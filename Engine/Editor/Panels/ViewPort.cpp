@@ -12,6 +12,8 @@ namespace Iaonnis
 
 	void ViewPort::OnUpdate(float dt)
 	{
+		SCOPE_TIMER(__FUNCTION__);
+
 		ImGui::Begin(name.c_str(), &active);
 
 		ImVec2 viewPortSize = ImGui::GetContentRegionAvail();

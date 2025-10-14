@@ -16,6 +16,7 @@ namespace Iaonnis
 
 	void MenuBar::OnUpdate()
 	{
+		SCOPE_TIMER(__FUNCTION__);
 
 		if(ImGui::BeginMainMenuBar())
 		{

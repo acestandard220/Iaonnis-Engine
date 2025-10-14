@@ -3,7 +3,6 @@
 
 namespace Iaonnis
 {
-	//int selectedIndex = -1;
 
 	SceneHierachy::SceneHierachy(Editor* editor)
 		:EditorPanel(editor)
@@ -19,6 +18,8 @@ namespace Iaonnis
 
 	void SceneHierachy::OnUpdate(float dt)
 	{
+		SCOPE_TIMER(__FUNCTION__);
+
 		if(ImGui::Begin(name.c_str(), &active, ImGuiWindowFlags_HorizontalScrollbar))
 		{
 			auto plusIcon = ResourceCache::GetIcon(IconType::Plus);
@@ -53,34 +54,40 @@ namespace Iaonnis
 						editor->SetSelectionType(SelectionType::Entity);
 					}
 
+					if (ImGui::IsItemHovered() && ImGui::IsMouseClicked(1))
+					{
+						OnItemPopUpContext();
+					}
 
 					index++;
-					if (entt.HasComponent<MeshFilterComponent>())
 					{
-						auto meshFilter = entt.GetComponent<MeshFilterComponent>();
-						for (auto& name : meshFilter.names)
-						{
-							int childFlag = ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_SpanAvailWidth;
-							if (editor->GetSelectionIndex() != -1)
-							{
-								if (index == editor->GetSelectionIndex())
-									childFlag |= ImGuiTreeNodeFlags_Selected;
-							}
+						//if (entt.HasComponent<MeshFilterComponent>())
+						//{
+						//	auto meshFilter = entt.GetComponent<MeshFilterComponent>();
+						//	for (auto& name : meshFilter.names)
+						//	{
+						//		int childFlag = ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_SpanAvailWidth;
+						//		if (editor->GetSelectionIndex() != -1)
+						//		{
+						//			if (index == editor->GetSelectionIndex())
+						//				childFlag |= ImGuiTreeNodeFlags_Selected;
+						//		}
 
-							if (ImGui::TreeNodeEx((name + " ##Child" + UUIDFactory::uuidToString(entt.GetUUID())).c_str(),childFlag))
-							{
+						//		if (ImGui::TreeNodeEx((name + " ##Child" + UUIDFactory::uuidToString(entt.GetUUID())).c_str(),childFlag))
+						//		{
 
-								if (ImGui::IsItemClicked(ImGuiMouseButton_Left))
-								{
-									editor->SetSelectionIndex(index);
-									editor->SelectEntt(nullptr);
-									editor->SetSelectionType(SelectionType::SubEntity);
-								}
-								
-								ImGui::TreePop();
-							}
-							index++;
-						}
+						//			if (ImGui::IsItemClicked(ImGuiMouseButton_Left))
+						//			{
+						//				editor->SetSelectionIndex(index);
+						//				editor->SelectEntt(nullptr);
+						//				editor->SetSelectionType(SelectionType::SubEntity);
+						//			}
+						//			
+						//			ImGui::TreePop();
+						//		}
+						//		index++;
+						//	}
+						//}
 					}
 					ImGui::TreePop();
 				}
@@ -109,15 +116,31 @@ namespace Iaonnis
 		{
 			if (ImGui::BeginMenu("Add Mesh"))
 			{
+				if (ImGui::MenuItem("Custom Mesh"))
+				{
+					//Job
+					std::string meshPath = FileDialog::OpenFileDialog();
+					if (!meshPath.empty())
+					{
+						std::shared_ptr<Mesh> newResource = editor->getScene()->getCache()->load<Mesh>(meshPath);
+						if (!newResource)
+						{
+							IAONNIS_LOG_ERROR("Failed to custom mesh.");
+						}
+						else {
+							editor->getScene()->addMesh(newResource->GetID());
+						}
+					}
+				}
 				if (ImGui::MenuItem("Cube"))
 				{
 					auto& newEntt = editor->getScene()->addCube("Cube");
-					editor->DeselectAll();
+					editor->Deselect();
 				}
 				if (ImGui::MenuItem("Plane"))
 				{
 					auto& newEntt = editor->getScene()->addPlane("Plane");
-					editor->DeselectAll();
+					editor->Deselect();
 				}
 				ImGui::EndMenu();
 			}
@@ -127,17 +150,17 @@ namespace Iaonnis
 				if (ImGui::MenuItem("Directional Light"))
 				{
 					auto& newEntt = editor->getScene()->addDirectionalLight();
-					editor->DeselectAll();
+					editor->Deselect();
 				}
 				if (ImGui::MenuItem("Point Light"))
 				{
 					auto& newEntt = editor->getScene()->addPointLight();
-					editor->DeselectAll();
+					editor->Deselect();
 				}
 				if (ImGui::MenuItem("Spot Light"))
 				{
 					auto& newEntt = editor->getScene()->addSpotLight();
-					editor->DeselectAll();
+					editor->Deselect();
 				}
 				ImGui::EndMenu();
 			}
@@ -154,6 +177,27 @@ namespace Iaonnis
 				}
 
 				ImGui::EndMenu();
+			}
+
+			ImGui::EndPopup();
+		}
+	}
+
+	void SceneHierachy::OnItemPopUpContext()
+	{
+		if (ImGui::BeginPopupContextItem("##SceneHierarchyItemPopUp"))
+		{
+			if (ImGui::MenuItem("Remove"))
+			{
+				Entity* entity = editor->getSelectedEntity();
+				editor->getScene()->removeEntity(*entity);
+
+				editor->Deselect();
+			}
+
+			if (ImGui::MenuItem("Hide"))
+			{
+
 			}
 
 			ImGui::EndPopup();
