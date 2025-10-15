@@ -164,11 +164,24 @@ namespace Iaonnis
 				if (ImGui::MenuItem(mtl->getName().c_str()))
 				{
 					scene->AssignMaterial(entt.GetUUID(), mtl->GetID(), index);
-					editor->getScene()->OnEntityRegisteryModified();//OnMaterialModified
+					editor->getScene()->OnEntityRegisteryModified();
 				}
 			}
 			ImGui::EndPopup();
 		}
+
+		if(ImGui::BeginPopup("##MaterialSelectionGlobal"))
+		{
+			for (auto& mtl : cache->getByType<Material>(ResourceType::Material))
+			{
+				if (ImGui::MenuItem(mtl->getName().c_str()))
+				{
+					scene->AssigGlobalMaterial(entt.GetUUID(), mtl->GetID());
+					editor->getScene()->OnEntityRegisteryModified();
+				}
+			}
+			ImGui::EndPopup();
+		}		
 		return;
 	}
 
@@ -234,7 +247,7 @@ namespace Iaonnis
 					if (ImGui::TreeNodeEx(label.c_str(), flags))
 					{
 						static int mtlListCurrentItem = 0;
-						if(ImGui::BeginListBox("##MtlDependantList"))
+						if(ImGui::BeginListBox("##MtlDependantList",ImVec2(0,180)))
 						{
 							for (int i = 0; i < mtlDependants.size(); i++)
 							{
@@ -254,14 +267,26 @@ namespace Iaonnis
 
 							ImGui::EndListBox();
 						}
+
+
 						ImGui::SameLine();
 
+						float contentRegionAvail = ImGui::GetContentRegionAvail().x;
+
+
 						ImGui::BeginGroup();
-						if (ImGuiEx::Button("Open", ImVec2(70, 25), ImDrawFlags_RoundCornersTop))
+						if (ImGuiEx::Button("New", ImVec2(70, 25), ImDrawFlags_RoundCornersTop))
+						{
+							auto newMaterial = cache->duplicate<Material>(cache->getDefaultMaterial()->GetID());
+							scene->AssignMaterial(entity->GetUUID(), newMaterial->GetID(), mtlListCurrentItem);
+
+							scene->OnEntityRegisteryModified();
+							scene->OnMaterialModified();
+						}
+						if (ImGuiEx::Button("Open", ImVec2(70, 25)))
 						{
 							materialToInspect = mtlID;
 							materialInspector = true;
-							//editor->getScene()->OnMaterialModified();//OnMaterialModified
 						}
 
 						if(materialInspector)
@@ -275,7 +300,7 @@ namespace Iaonnis
 							editor->getScene()->OnEntityRegisteryModified(); //OnMaterialModified
 						}
 
-						if (ImGuiEx::Button("Reset All", ImVec2(70, 25), ImDrawFlags_RoundCornersBottom))
+						if (ImGuiEx::Button("Reset All", ImVec2(70, 25)))
 						{
 							scene->ResetAllMaterial(entity->GetUUID());
 							editor->getScene()->OnEntityRegisteryModified(); //OnMaterialModified
@@ -284,6 +309,11 @@ namespace Iaonnis
 						if (ImGuiEx::Button("Assign", ImVec2(70, 25)))
 						{
 							ImGui::OpenPopup("##MaterialSelection");
+						}
+
+						if (ImGuiEx::Button("Assign All", ImVec2(70, 25), ImDrawFlags_RoundCornersBottom))
+						{
+							ImGui::OpenPopup("##MaterialSelectionGlobal");
 						}
 						MaterialSelectionContext(*entity, mtlListCurrentItem);
 

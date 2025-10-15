@@ -14,6 +14,7 @@ namespace Iaonnis
         environment = cache->load<Environment>("Assets/Environment Maps/Skybox/skybox.txt");
 
         addPointLight();
+        addCube("Cube");
         
         //Systems Init()
         systems.emplace_back(std::make_unique<TransformSystem>(&registry));

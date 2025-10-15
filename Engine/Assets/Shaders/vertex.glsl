@@ -17,11 +17,50 @@ out mat3 TBN;
 flat out int drawID;
 uniform mat4 mvp;
 
+
+struct CommandData{
+    vec2 values;
+};
+
+struct MeshMap{
+    vec2 values;
+};
+
+layout (std430,binding = 10) readonly buffer CmdDataBuffer
+{
+    CommandData cmdData[];
+};
+
+layout (std430,binding = 11) readonly buffer MeshMapBuffer
+{
+    MeshMap meshMap[];
+};
+
+layout (std430,binding = 12) readonly buffer ModelMatBuffer
+{
+    mat4 modelMats[];
+};
+
 void main()
 {
+
+   drawID = gl_DrawIDARB;
+    int drawOffset = int(cmdData[drawID].values.y);
+    int modelIndex = 0;
+    int accumulatedVertices = 0;
+    
+    for(int i = 0; i < cmdData[drawID].values.x; i++)
+    {
+        accumulatedVertices += int(meshMap[drawOffset + i].values.x);
+        if(gl_VertexID < accumulatedVertices)
+        {
+            modelIndex = int(meshMap[drawOffset + i].values.y);
+            break;
+        }
+    }
+
     FragPos = aPos;
     gl_Position = mvp * vec4(aPos, 1.0);
-    drawID = gl_DrawIDARB;
 
     vec3 T = normalize(mat3(1.0) * aTan);
     vec3 B = normalize(mat3(1.0) * aBitan);

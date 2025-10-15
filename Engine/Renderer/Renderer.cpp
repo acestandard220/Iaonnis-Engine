@@ -126,11 +126,28 @@ namespace Iaonnis {
 			uint32_t  baseInstance;
 		};
 
+		struct CommandData
+		{
+			int nMeshes;
+			int offset;
+		};
+
+		struct MeshMap
+		{
+			int key;
+			int value;
+		};
+
 		struct {
 			uint32_t vao;
 			uint32_t vbo;
 			uint32_t ebo;
 			uint32_t ibo;
+
+			void* vboPtr;
+			void* eboPtr;
+			void* iboPtr;
+			GLsync gSync;
 
 			uint32_t screenQuadVao;
 			uint32_t screenQuadVbo;
@@ -144,6 +161,8 @@ namespace Iaonnis {
 			uint32_t environmentProgram;
 
 			uint32_t modelSSBO;
+			uint32_t commnadDataSSBO;
+			uint32_t modelMapSSBO;
 
 			//uint32_t cameraUBO;
 
@@ -166,7 +185,7 @@ namespace Iaonnis {
 			static const int MAX_VERTEX = 3000000;
 			static const int MAX_INDICES = 5000000;
 
-			const int MAX_DRAW_COMMANDS = 300;
+			static const int MAX_DRAW_COMMANDS = 300;
 			int commandPtr = 0;
 
 			int indexCount = 0;
@@ -189,8 +208,8 @@ namespace Iaonnis {
 			PointLightUpload pointLightArr[MAX_TYPE_OF_LIGHT];
 
 			LightMeta lightMeta{};
-
 			int materialUploadPtr = 0;
+
 		}rendererData;
 
 		RendererStatistics RendererStats{};
@@ -233,9 +252,16 @@ namespace Iaonnis {
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, rendererData.ebo);
 			glBindBuffer(GL_DRAW_INDIRECT_BUFFER, rendererData.ibo);
 
-			glBufferData(GL_ARRAY_BUFFER, sizeof(Vertice) * rendererData.MAX_VERTEX, nullptr, GL_DYNAMIC_DRAW);
-			glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(uint32_t) * rendererData.MAX_INDICES, nullptr, GL_DYNAMIC_DRAW);
-			glBufferData(GL_DRAW_INDIRECT_BUFFER, sizeof(DrawElementsIndirectCommand) * rendererData.MAX_DRAW_COMMANDS, nullptr, GL_DYNAMIC_DRAW);
+			GLbitfield flags = GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT;
+			
+			glBufferStorage(GL_ARRAY_BUFFER, sizeof(Vertice) * rendererData.MAX_VERTEX, nullptr, flags);
+			rendererData.vboPtr = glMapBufferRange(GL_ARRAY_BUFFER, 0, sizeof(Vertice) * rendererData.MAX_VERTEX, flags);
+
+			glBufferStorage(GL_ELEMENT_ARRAY_BUFFER, sizeof(uint32_t) * rendererData.MAX_INDICES, nullptr, flags);
+			rendererData.eboPtr = glMapBufferRange(GL_ELEMENT_ARRAY_BUFFER, 0, sizeof(uint32_t) * rendererData.MAX_INDICES, flags);
+
+			glBufferStorage(GL_DRAW_INDIRECT_BUFFER, sizeof(DrawElementsIndirectCommand) * rendererData.MAX_DRAW_COMMANDS, nullptr, flags);
+			rendererData.iboPtr = glMapBufferRange(GL_DRAW_INDIRECT_BUFFER, 0, sizeof(DrawElementsIndirectCommand) * rendererData.MAX_DRAW_COMMANDS, flags);
 
 			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertice), 0);
 			glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertice), (void*)offsetof(Vertice, n));
@@ -327,18 +353,8 @@ namespace Iaonnis {
 
 		}
 
-		void Iaonnis::Renderer3D::Initialize(uint32_t program)
+		void CreateTextureSSBO()
 		{
-			SCOPE_TIMER(__FUNCTION__);
-
-			//====================Shader Creation================================================
-
-			rendererData.lightProgram = CreateShaderProgram("Assets/Shaders/lightVert.glsl", "Assets/Shaders/pbrFragment.glsl");
-			rendererData.environmentProgram = CreateShaderProgram("Assets/Shaders/environmentVert.glsl", "Assets/Shaders/environmentFrag.glsl");
-			//===================================================================================
-
-			CreateIndirectDrawBuffers();
-
 			//=======================Texture SSBO=================================
 			glGenBuffers(1, &rendererData.diffuseSSBO);
 			glBindBuffer(GL_SHADER_STORAGE_BUFFER, rendererData.diffuseSSBO);
@@ -365,6 +381,21 @@ namespace Iaonnis {
 			glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(GLuint64) * rendererData.MAX_MATERIALS, nullptr, GL_DYNAMIC_DRAW);
 			glBindBufferBase(GL_SHADER_STORAGE_BUFFER, SSBO_SLOT::Metallic, rendererData.metallicSSBO);
 
+		}
+
+		void Iaonnis::Renderer3D::Initialize(uint32_t program)
+		{
+			SCOPE_TIMER(__FUNCTION__);
+
+			//====================Shader Creation================================================
+
+			rendererData.lightProgram = CreateShaderProgram("Assets/Shaders/lightVert.glsl", "Assets/Shaders/pbrFragment.glsl");
+			rendererData.environmentProgram = CreateShaderProgram("Assets/Shaders/environmentVert.glsl", "Assets/Shaders/environmentFrag.glsl");
+			//===================================================================================
+
+			CreateIndirectDrawBuffers();
+		
+			CreateTextureSSBO();
 			CreateLightBuffers();
 
 			//====================Material UBO======================================
@@ -561,6 +592,29 @@ namespace Iaonnis {
 			IAONNIS_LOG_INFO("Renderer has shutdown");
 		}
 
+		void LockFence(GLsync& sync)
+		{
+			if (sync)
+			{
+				glDeleteSync(sync);
+			}
+
+			sync = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+		}
+
+		void WaitFence(GLsync& sync)
+		{
+			if (sync)
+			{
+				while (true)
+				{
+					GLenum wait = glClientWaitSync(sync, GL_SYNC_FLUSH_COMMANDS_BIT, 1);
+					if (wait == GL_ALREADY_SIGNALED || wait == GL_CONDITION_SATISFIED)
+						break;
+				}
+			}
+		}
+
 		void Iaonnis::Renderer3D::EnvironmentPass(Scene* scene)
 		{
 			// Make global...
@@ -634,24 +688,24 @@ namespace Iaonnis {
 						Vertice* subMeshVertices = meshResource->getSubMeshVerticeStart(index);
 
 						
-						std::vector<Vertice> transformedVertices(subMesh->vertexCount);
-						for (int v = 0; v < subMesh->vertexCount; v++)
-						{
-							transformedVertices[v] = subMeshVertices[v];
-							auto transformedVec4 = (meshTransformMatrix * glm::vec4(transformedVertices[v].p, 1.0F));
-							transformedVertices[v].n = glm::normalize(glm::mat3(glm::transpose(glm::inverse(meshTransformMatrix))) * transformedVertices[v].n);
-							transformedVertices[v].tangent = glm::normalize(glm::mat3(glm::transpose(glm::inverse(meshTransformMatrix))) * transformedVertices[v].tangent);
+						//std::vector<Vertice> transformedVertices(subMesh->vertexCount);
+						//for (int v = 0; v < subMesh->vertexCount; v++)
+						//{
+						//	transformedVertices[v] = subMeshVertices[v];
+						//	auto transformedVec4 = (meshTransformMatrix * glm::vec4(transformedVertices[v].p, 1.0F));
+						//	transformedVertices[v].n = glm::normalize(glm::mat3(glm::transpose(glm::inverse(meshTransformMatrix))) * transformedVertices[v].n);
+						//	transformedVertices[v].tangent = glm::normalize(glm::mat3(glm::transpose(glm::inverse(meshTransformMatrix))) * transformedVertices[v].tangent);
 
-							transformedVertices[v].p = transformedVec4;
-							//transformedVertices[v].p.x = 10;
-						}
+						//	transformedVertices[v].p = transformedVec4;
+						//	//transformedVertices[v].p.x = 10;
+						//}
 
 						DrawData data;
 						data.indexCount = subMesh->indexCount;
 						data.indexPtr = meshResource->getSubMeshIndexStart(index);
 
 						data.vertexCount = subMesh->vertexCount;
-						data.vertexPtr = transformedVertices.data();
+						data.vertexPtr = subMeshVertices;
 
 						inUse = true;
 						submitDrawCommandData(data);
@@ -667,82 +721,6 @@ namespace Iaonnis {
 			STIMER_STOP(sceneUpload);
 			
 			RendererStats.sceneUploadTime = sceneUpload.durationMs();
-		}
-
-		void UploadSceneNoBatching(Scene* scene)
-		{
-			resetGeometryPtrs();
-			std::shared_ptr<ResourceCache> cache = scene->getCache();
-			std::vector<std::shared_ptr<Material>> materials = cache->getByType<Material>(ResourceType::Material);
-
-			for (auto& entity : scene->GetEntities())
-			{
-				if (!entity.HasComponent<MeshFilterComponent>())
-					continue;
-
-				auto meshFilter = entity.GetComponent<MeshFilterComponent>();
-				auto meshTransformMatrix = entity.GetTransformMatrix();
-
-				std::shared_ptr<Mesh> meshResource = cache->getByUUID<Mesh>(meshFilter.meshID);
-
-				for(auto& [mtlID, mtlDeps]: meshFilter.materialIDMap)
-				{
-					for (auto& i : mtlDeps)
-					{
-						std::shared_ptr<Material> material = cache->getByUUID<Material>(mtlID);
-						if (!meshResource)
-							continue;
-
-						SubMesh* subMesh = meshResource->getSubMesh(i);
-						Vertice* subMeshVertices = meshResource->getSubMeshVerticeStart(i);
-
-						DrawData data;
-						data.indexCount = subMesh->indexCount;
-						data.indexPtr = meshResource->getSubMeshIndexStart(i);
-
-						data.vertexCount = subMesh->vertexCount;
-						data.vertexPtr = subMeshVertices;
-
-						submitDrawCommandData(data);
-						closeDrawCommands();
-
-						auto diffuseResource = cache->getByUUID<ImageTexture>(material->getDiffuseID());
-						auto normalResource = cache->getByUUID<ImageTexture>(material->getNormalID());
-						auto aoResource = cache->getByUUID<ImageTexture>(material->getAoID());
-						auto roughnessResource = cache->getByUUID<ImageTexture>(material->getRoughnessID());
-						auto metallicResource = cache->getByUUID<ImageTexture>(material->getMetallicID());
-
-						auto diffuseHandle = diffuseResource->getTextureHandle().handle;
-						auto normalHandle = normalResource->getTextureHandle().handle;
-						auto aoHandle = aoResource->getTextureHandle().handle;
-						auto roughnessHandle = roughnessResource->getTextureHandle().handle;
-						auto metallicHandle = metallicResource->getTextureHandle().handle;
-
-						MaterialUpload mtlUpload;
-						mtlUpload.color = material->getColor();
-						mtlUpload.uvScale = glm::vec4(material->getUVScale(), material->getNormalStrength(), 1.0f);
-
-						int poolIndex = rendererData.materialUploadPtr;
-						rendererData.diffuseUploadArr[poolIndex] = diffuseHandle;
-						rendererData.normalUploadArr[poolIndex] = normalHandle;
-						rendererData.aoUploadArr[poolIndex] = aoHandle;
-						rendererData.roughnessUploadArr[poolIndex] = roughnessHandle;
-						rendererData.metallicUploadArr[poolIndex] = metallicHandle;
-
-						rendererData.materialUploadArr[rendererData.materialUploadPtr] = mtlUpload;
-						rendererData.materialUploadPtr++;
-
-						//Stats
-						RendererStats.totalTextureBufferSize += diffuseResource->GetBytSize();
-						RendererStats.totalTextureBufferSize += normalResource->GetBytSize();
-						RendererStats.totalTextureBufferSize += aoResource->GetBytSize();
-						RendererStats.totalTextureBufferSize += roughnessResource->GetBytSize();
-						RendererStats.totalTextureBufferSize += metallicResource->GetBytSize();
-					}
-				}
-			}
-
-			UploadMaterialsToGPU();
 		}
 
 		void Renderer3D::UploadMaterialArray(Scene* scene)
@@ -815,6 +793,10 @@ namespace Iaonnis {
 
 		}
 
+		void UploadModelMatrixToGPU()
+		{
+		}
+
 		void Iaonnis::Renderer3D::UploadLightData(Scene* scene)
 		{
 			SCOPE_TIMER("LIGHT_UPLOAD");
@@ -862,8 +844,6 @@ namespace Iaonnis {
 			rendererData.lightMeta.viewPos = glm::vec4(scene->GetSceneCamera()->getFrustrum().position, 1.0f);
 
 			{
-				//SCOPE_TIMER("LIGHT_GPU_UPLOAD");
-
 				glBindBuffer(GL_SHADER_STORAGE_BUFFER, rendererData.directionalLightSSBO);
 				glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, sizeof(DirectionalLightUpload) * rendererData.lightMeta.nDirectionLight, &rendererData.directionalLightArr[0]);
 
@@ -930,40 +910,35 @@ namespace Iaonnis {
 			glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		}
 
+
 		void submitDrawCommandData(DrawData data)
 		{
-			//SCOPE_TIMER(__FUNCTION__);
-
 			//Transform Index Space: To be continious of the already batch vertices
-			void* indexPtr = data.indexPtr;
+			uint32_t* indexPtr = static_cast<uint32_t*>(rendererData.eboPtr);
 
-			std::vector<uint32_t> newIndices;
 			uint32_t firstIndex = *(uint32_t*)data.indexPtr;
 			uint32_t* srcIndex = (uint32_t*)data.indexPtr;
 
 			for (int i = 0; i < data.indexCount; i++)
 			{
 				uint32_t in = srcIndex[i];
-				newIndices.push_back(in + rendererData.currentVertexCount - firstIndex);
+				uint32_t generatedIndex = in + rendererData.currentVertexCount - firstIndex;
+				indexPtr[(rendererData.indexCount + rendererData.currentIndexCount) + i] = generatedIndex;
+
 			}
-			indexPtr = newIndices.data();
 
-			glBindVertexArray(rendererData.vao);
-
-			glBindBuffer(GL_ARRAY_BUFFER, rendererData.vbo);
-			glBufferSubData(GL_ARRAY_BUFFER, (rendererData.vertexCount + rendererData.currentVertexCount) * sizeof(Vertice), sizeof(Vertice) * data.vertexCount, data.vertexPtr);
-
-			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, rendererData.ebo);
-			glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, (rendererData.indexCount + rendererData.currentIndexCount) * sizeof(uint32_t), sizeof(uint32_t) * data.indexCount, indexPtr);
+			Vertice* vboPtr = (Vertice*)rendererData.vboPtr;
+			Vertice* verticePtr = (Vertice*)data.vertexPtr;
+			for (int i = 0; i < data.vertexCount; i++)
+			{
+				vboPtr[(rendererData.vertexCount + rendererData.currentVertexCount) + i] = verticePtr[i];
+			}
 
 			rendererData.currentVertexCount += data.vertexCount;
 			rendererData.currentIndexCount += data.indexCount;
 
-			
 			RendererStats.nRenderedVertices += data.vertexCount;
-			RendererStats.nRenderedIndices += data.indexCount;
-
-			
+			RendererStats.nRenderedIndices += data.indexCount;			
 		}
 
 		void closeDrawCommands()
@@ -982,10 +957,12 @@ namespace Iaonnis {
 
 			rendererData.currentIndexCount = 0;
 			rendererData.currentVertexCount = 0;
-			
-			glBufferSubData(GL_DRAW_INDIRECT_BUFFER, rendererData.commandPtr * sizeof(DrawElementsIndirectCommand), sizeof(DrawElementsIndirectCommand), &cm);
-			rendererData.commandPtr++;
 
+			DrawElementsIndirectCommand* iboPtr = (DrawElementsIndirectCommand*)rendererData.iboPtr;
+			iboPtr[rendererData.commandPtr] = cm;
+
+			rendererData.commandPtr++;
+		
 			RendererStats.nDrawCalls++;
 
 		}
@@ -1051,8 +1028,11 @@ namespace Iaonnis {
 
 			if (scene->IsEntityRegisteryDirty())
 			{
+				WaitFence(rendererData.gSync);
+
 				UploadScene(scene);
 				scene->SetEntityRegisteryClean();
+				UploadModelMatrixToGPU();
 			}
 
 			if (scene->IsMaterialsDirty())
@@ -1064,6 +1044,9 @@ namespace Iaonnis {
 			
 
 			drawCommands(scene,program);
+			LockFence(rendererData.gSync);
+
+
 			LightPass(scene);
 			//EnvironmentPass(scene);
 

@@ -35,7 +35,9 @@ namespace Iaonnis
 
 			AO = 7, 
 			Metallic = 8,
-			Roughness = 9
+			Roughness = 9,
+
+			CmdData, ModelMap, ModelMatrix
 		};
 
 		enum class gBufferHandles
@@ -50,17 +52,22 @@ namespace Iaonnis
 
 			int vertexCount;
 			int indexCount;
+
+			int modelIndex;
 		};
 
 		void Initialize(uint32_t program);
 		void Shutdown();
 		
+		void LockFence(GLsync& sync);
+		void WaitFence(GLsync& sync);
+
 		void EnvironmentPass(Scene* scene);
 
 		void UploadScene(Scene* scene);
-		void UploadSceneNoBatching(Scene* scene);
 		void UploadMaterialArray(Scene* scene);
 		void UploadMaterialsToGPU();
+		void UploadModelMatrixToGPU();
 
 		void UploadLightData(Scene* scene);
 		void LightPass(Scene* scene);

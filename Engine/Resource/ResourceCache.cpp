@@ -67,6 +67,8 @@ namespace Iaonnis
 
 	ResourceCache::ResourceCache()
 	{
+		stbi_set_flip_vertically_on_load(true);
+
 		auto cube = create<Mesh>("Cube.mesh");
 		auto plane = create<Mesh>("Plane.mesh");
 
