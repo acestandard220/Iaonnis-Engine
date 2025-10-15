@@ -26,18 +26,11 @@ namespace Iaonnis
 
 		enum SSBO_SLOT
 		{
-			Diffuse = 0,
-			Normal = 1,
+			DirectionalLight = 1,
+			SpotLight = 2,
+			PointLight = 3,
 
-			DirectionalLight = 4,
-			SpotLight = 5,
-			PointLight = 6,
-
-			AO = 7, 
-			Metallic = 8,
-			Roughness = 9,
-
-			CmdData, ModelMap, ModelMatrix
+			MaterialSSBO = 4		
 		};
 
 		enum class gBufferHandles

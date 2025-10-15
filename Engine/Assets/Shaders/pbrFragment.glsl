@@ -36,17 +36,17 @@ uniform sampler2D iAo;
 uniform sampler2D iRoughness;
 uniform sampler2D iMetallic;
 
-layout(std430,binding = 4) buffer readonly Lights_directional
+layout(std430,binding = 1) buffer readonly Lights_directional
 {
 	DirectionalLight dLights[];
 };
 
-layout(std430,binding = 5) buffer readonly Lights_spot
+layout(std430,binding = 2) buffer readonly Lights_spot
 {
 	SpotLight sLights[];
 };
 
-layout(std430,binding = 6) buffer readonly Lights_point
+layout(std430,binding = 3) buffer readonly Lights_point
 {
 	PointLight pLights[];
 };

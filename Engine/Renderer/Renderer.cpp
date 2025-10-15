@@ -84,12 +84,6 @@ namespace Iaonnis {
 			return shaderProgram;
 		}
 
-		struct MaterialUpload
-		{
-			glm::vec4 color;
-			glm::vec4 uvScale; //+ normal strength + flipY
-		};
-
 		struct DirectionalLightUpload
 		{
 			glm::vec4 direction;
@@ -126,6 +120,19 @@ namespace Iaonnis {
 			uint32_t  baseInstance;
 		};
 
+		struct MaterialUpload {
+			GLuint64 albedo;
+			GLuint64 normal;
+			GLuint64 ao;
+			GLuint64 roughness;
+			GLuint64 metal;
+
+			GLuint64 _pad1;
+			
+			glm::vec4 color;
+			glm::vec4 uvScale; //z = normalStrength & w = flipNormalY
+		};
+
 		struct CommandData
 		{
 			int nMeshes;
@@ -149,6 +156,9 @@ namespace Iaonnis {
 			void* iboPtr;
 			GLsync gSync;
 
+			uint32_t materialSSBO;
+			void* textureMapPtr;
+
 			uint32_t screenQuadVao;
 			uint32_t screenQuadVbo;
 			uint32_t screenQuadEbo;
@@ -160,19 +170,7 @@ namespace Iaonnis {
 			uint32_t lightProgram;
 			uint32_t environmentProgram;
 
-			uint32_t modelSSBO;
-			uint32_t commnadDataSSBO;
-			uint32_t modelMapSSBO;
-
 			//uint32_t cameraUBO;
-
-			uint32_t diffuseSSBO;
-			uint32_t normalSSBO;
-			uint32_t aoSSBO;
-			uint32_t roughnessSSBO;
-			uint32_t metallicSSBO;
-
-			uint32_t materialUBO;
 
 			uint32_t directionalLightSSBO;
 			uint32_t spotLigtSSBO;
@@ -194,13 +192,8 @@ namespace Iaonnis {
 			int currentIndexCount = 0;
 
 			static const int MAX_MATERIALS = 300;
-			GLuint64 diffuseUploadArr[MAX_MATERIALS];
-			GLuint64 normalUploadArr[MAX_MATERIALS];
-			GLuint64 aoUploadArr[MAX_MATERIALS];
-			GLuint64 roughnessUploadArr[MAX_MATERIALS];
-			GLuint64 metallicUploadArr[MAX_MATERIALS];
-
 			MaterialUpload materialUploadArr[MAX_MATERIALS];
+			int materialUploadPtr = 0;
 
 			static const int MAX_TYPE_OF_LIGHT = 300;
 			DirectionalLightUpload directionalLightArr[MAX_TYPE_OF_LIGHT];
@@ -208,7 +201,6 @@ namespace Iaonnis {
 			PointLightUpload pointLightArr[MAX_TYPE_OF_LIGHT];
 
 			LightMeta lightMeta{};
-			int materialUploadPtr = 0;
 
 		}rendererData;
 
@@ -356,31 +348,13 @@ namespace Iaonnis {
 		void CreateTextureSSBO()
 		{
 			//=======================Texture SSBO=================================
-			glGenBuffers(1, &rendererData.diffuseSSBO);
-			glBindBuffer(GL_SHADER_STORAGE_BUFFER, rendererData.diffuseSSBO);
-			glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(GLuint64) * rendererData.MAX_MATERIALS, nullptr, GL_DYNAMIC_DRAW);
-			glBindBufferBase(GL_SHADER_STORAGE_BUFFER, SSBO_SLOT::Diffuse, rendererData.diffuseSSBO);
+			glGenBuffers(1, &rendererData.materialSSBO);
+			glBindBuffer(GL_SHADER_STORAGE_BUFFER, rendererData.materialSSBO);
+			glBindBufferBase(GL_SHADER_STORAGE_BUFFER, SSBO_SLOT::MaterialSSBO, rendererData.materialSSBO);
 
-			glGenBuffers(1, &rendererData.normalSSBO);
-			glBindBuffer(GL_SHADER_STORAGE_BUFFER, rendererData.normalSSBO);
-			glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(GLuint64) * rendererData.MAX_MATERIALS, nullptr, GL_DYNAMIC_DRAW);
-			glBindBufferBase(GL_SHADER_STORAGE_BUFFER, SSBO_SLOT::Normal, rendererData.normalSSBO);
-
-			glGenBuffers(1, &rendererData.aoSSBO);
-			glBindBuffer(GL_SHADER_STORAGE_BUFFER, rendererData.aoSSBO);
-			glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(GLuint64) * rendererData.MAX_MATERIALS, nullptr, GL_DYNAMIC_DRAW);
-			glBindBufferBase(GL_SHADER_STORAGE_BUFFER, SSBO_SLOT::AO, rendererData.aoSSBO);
-
-			glGenBuffers(1, &rendererData.roughnessSSBO);
-			glBindBuffer(GL_SHADER_STORAGE_BUFFER, rendererData.roughnessSSBO);
-			glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(GLuint64) * rendererData.MAX_MATERIALS, nullptr, GL_DYNAMIC_DRAW);
-			glBindBufferBase(GL_SHADER_STORAGE_BUFFER, SSBO_SLOT::Roughness, rendererData.roughnessSSBO);
-
-			glGenBuffers(1, &rendererData.metallicSSBO);
-			glBindBuffer(GL_SHADER_STORAGE_BUFFER, rendererData.metallicSSBO);
-			glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(GLuint64) * rendererData.MAX_MATERIALS, nullptr, GL_DYNAMIC_DRAW);
-			glBindBufferBase(GL_SHADER_STORAGE_BUFFER, SSBO_SLOT::Metallic, rendererData.metallicSSBO);
-
+			GLbitfield flags = GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT;
+			glBufferStorage(GL_SHADER_STORAGE_BUFFER, sizeof(MaterialUpload) * rendererData.MAX_MATERIALS, nullptr, flags);
+			rendererData.textureMapPtr = glMapBufferRange(GL_SHADER_STORAGE_BUFFER, 0, sizeof(MaterialUpload) * rendererData.MAX_MATERIALS, flags);
 		}
 
 		void Iaonnis::Renderer3D::Initialize(uint32_t program)
@@ -397,14 +371,6 @@ namespace Iaonnis {
 		
 			CreateTextureSSBO();
 			CreateLightBuffers();
-
-			//====================Material UBO======================================
-			glGenBuffers(1, &rendererData.materialUBO);
-			glBindBuffer(GL_UNIFORM_BUFFER, rendererData.materialUBO);
-			glBufferData(GL_UNIFORM_BUFFER, sizeof(MaterialUpload) * rendererData.MAX_MATERIALS, nullptr, GL_DYNAMIC_DRAW);
-			glBindBufferRange(GL_UNIFORM_BUFFER, 0, rendererData.materialUBO, 0, sizeof(MaterialUpload) * rendererData.MAX_MATERIALS);
-			glUniformBlockBinding(program, glGetUniformBlockIndex(program, "Materials"), 0);
-
 
 			//=====================ScrenQuad Buffers===============================
 			float screenQuadVertices[16] =
@@ -574,11 +540,6 @@ namespace Iaonnis {
 			glDeleteProgram(rendererData.lightProgram);
 			glDeleteProgram(rendererData.environmentProgram);
 
-			glDeleteBuffers(1, &rendererData.diffuseSSBO);
-			glDeleteBuffers(1, &rendererData.normalSSBO);
-
-			glDeleteBuffers(1, &rendererData.materialUBO);
-
 			glDeleteBuffers(1, &rendererData.directionalLightSSBO);
 			glDeleteBuffers(1, &rendererData.spotLigtSSBO);
 			glDeleteBuffers(1, &rendererData.pointLigtSSBO);
@@ -747,18 +708,18 @@ namespace Iaonnis {
 					auto roughnessHandle = roughnessResource->getTextureHandle().handle;
 					auto metallicHandle = metallicResource->getTextureHandle().handle;
 
-					MaterialUpload mtlUpload;
-					mtlUpload.color = material->getColor();
-					mtlUpload.uvScale = glm::vec4(material->getUVScale(), material->getNormalStrength(), 1.0f);
-
 					int poolIndex = rendererData.materialUploadPtr;
-					rendererData.diffuseUploadArr[poolIndex] = diffuseHandle;
-					rendererData.normalUploadArr[poolIndex] = normalHandle;
-					rendererData.aoUploadArr[poolIndex] = aoHandle;
-					rendererData.roughnessUploadArr[poolIndex] = roughnessHandle;
-					rendererData.metallicUploadArr[poolIndex] = metallicHandle;
 
-					rendererData.materialUploadArr[rendererData.materialUploadPtr] = mtlUpload;
+					MaterialUpload* textureMapPtr = (MaterialUpload*)rendererData.textureMapPtr;
+					textureMapPtr[poolIndex] = {
+						diffuseHandle,normalHandle,
+						aoHandle,roughnessHandle,
+						metallicHandle,
+						0,
+						 material->getColor(),
+						 glm::vec4(material->getUVScale(), material->getNormalStrength(), 1.0f)
+					};
+
 					rendererData.materialUploadPtr++;
 
 					//Stats
@@ -776,21 +737,6 @@ namespace Iaonnis {
 		void Iaonnis::Renderer3D::UploadMaterialsToGPU()
 		{
 			SCOPE_TIMER("MATERIAL_GPU_UPLOAD");
-
-			glBindBuffer(GL_UNIFORM_BUFFER, rendererData.materialUBO);
-			glBufferSubData(GL_UNIFORM_BUFFER,0,rendererData.materialUploadPtr * sizeof(MaterialUpload),&rendererData.materialUploadArr[0]);
-
-			glBindBuffer(GL_SHADER_STORAGE_BUFFER, rendererData.diffuseSSBO);
-			glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, rendererData.materialUploadPtr * sizeof(GLuint64), &rendererData.diffuseUploadArr[0]);
-			glBindBuffer(GL_SHADER_STORAGE_BUFFER, rendererData.normalSSBO);
-			glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, rendererData.materialUploadPtr * sizeof(GLuint64), &rendererData.normalUploadArr[0]);
-			glBindBuffer(GL_SHADER_STORAGE_BUFFER, rendererData.aoSSBO);
-			glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, rendererData.materialUploadPtr * sizeof(GLuint64), &rendererData.aoUploadArr[0]);
-			glBindBuffer(GL_SHADER_STORAGE_BUFFER, rendererData.roughnessSSBO);
-			glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, rendererData.materialUploadPtr * sizeof(GLuint64), &rendererData.roughnessUploadArr[0]);
-			glBindBuffer(GL_SHADER_STORAGE_BUFFER, rendererData.metallicSSBO);
-			glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, rendererData.materialUploadPtr * sizeof(GLuint64), &rendererData.metallicUploadArr[0]);
-
 		}
 
 		void UploadModelMatrixToGPU()
@@ -918,7 +864,6 @@ namespace Iaonnis {
 
 			uint32_t firstIndex = *(uint32_t*)data.indexPtr;
 			uint32_t* srcIndex = (uint32_t*)data.indexPtr;
-
 			for (int i = 0; i < data.indexCount; i++)
 			{
 				uint32_t in = srcIndex[i];
@@ -986,7 +931,6 @@ namespace Iaonnis {
 			glBindBuffer(GL_DRAW_INDIRECT_BUFFER, rendererData.ibo);
 			glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, 0, rendererData.commandPtr, 0);
 
-			glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		}
 
 		void Iaonnis::Renderer3D::resetGeometryPtrs()
@@ -1037,6 +981,8 @@ namespace Iaonnis {
 
 			if (scene->IsMaterialsDirty())
 			{
+				WaitFence(rendererData.gSync);
+
 				UploadMaterialArray(scene);
 				UploadMaterialsToGPU();
 				scene->SetMaterialClean();
