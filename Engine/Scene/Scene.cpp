@@ -1,3 +1,4 @@
+
 #include "Scene.h"
 #include "Entity.h"
 
@@ -17,14 +18,16 @@ namespace Iaonnis
         //AddCube("Cube B");
         //AddCube("Cube C");
         //AddCube("Cube D");
-        AddPointLight();
+        //AddPointLight();
+        //addSpotLight();
 
-        auto newMtl = cache->CreateNewMaterial("New Material");
+       /* auto newMtl = cache->CreateNewMaterial("New Material");
         auto newCube = AddCube("Cube A");
-        AssignMaterial(newCube.GetUUID(), newMtl->GetID(), 0);
+        AssignMaterial(newCube.GetUUID(), newMtl->GetID(), 0);*/
 
         //Systems Init()
         systems.emplace_back(std::make_unique<TransformSystem>(&registry));
+        systems.emplace_back(std::make_unique<LightSystem>(&registry));
 
         EventBus::subscribe(EventType::RESIZE_EVENT, std::bind(&Scene::OnViewFrameResize, this, std::placeholders::_1));
     }
@@ -119,7 +122,7 @@ namespace Iaonnis
     {
         Entity& entity = CreateEntity("Spot Light");
         auto& lightComp = entity.AddComponent<LightComponent>();
-        lightComp.color = glm::vec4(0.8f, 0.6f, 0.6f, 1.0f);
+        lightComp.color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
         lightComp.type = LightType::Spot;
         lightComp.position = glm::vec3(0.0f, 3.0f, 0.0f);
 

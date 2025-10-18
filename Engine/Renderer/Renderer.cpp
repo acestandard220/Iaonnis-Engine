@@ -96,17 +96,9 @@ namespace Iaonnis {
 			uint32_t screenQuadVbo;
 			uint32_t screenQuadEbo;
 
-			uint32_t environmentCubeVao;
-			uint32_t environmentCubeVbo;
-			uint32_t environmentCubeEbo;
-
 			uint32_t lightProgram;
-			uint32_t environmentProgram;
-			uint32_t cascadeDepthProgram;
 
 			uint32_t lightSpaceMatrixUBO;
-
-			//uint32_t cameraUBO;
 
 			uint32_t directionalLightSSBO;
 			uint32_t spotLigtSSBO;
@@ -117,8 +109,8 @@ namespace Iaonnis {
 			FramebufferHandle gBuffer;
 
 
-			static const int MAX_VERTEX = 3000000;
-			static const int MAX_INDICES = 5000000;
+			static const int MAX_VERTEX = 10000000;
+			static const int MAX_INDICES = 15000000;
 			static const int MAX_DRAW_COMMANDS = 300;
 			static const int MAX_MATERIALS = 300;
 			static const int MAX_TYPE_OF_LIGHT = 300;
@@ -138,10 +130,6 @@ namespace Iaonnis {
 			DirectionalLightUpload directionalLightArr[MAX_TYPE_OF_LIGHT];
 			SpotLightUpload spotLightArr[MAX_TYPE_OF_LIGHT];
 			PointLightUpload pointLightArr[MAX_TYPE_OF_LIGHT];
-
-			float cascadeLevels[4] = { 50.0f,100.0f,200.0f,500.0f };
-			uint32_t cascadeFBO[MAX_TYPE_OF_LIGHT];
-			uint32_t cascadeTexture[MAX_TYPE_OF_LIGHT];
 
 			CascadeMatrixSet lightSpaceMatrixArr[MAX_TYPE_OF_LIGHT];
 			int lightSpaceMatrixPtr = 0;
@@ -314,8 +302,6 @@ namespace Iaonnis {
 		void CreateShaders()
 		{
 			rendererData.lightProgram = CreateShaderProgram("Assets/Shaders/lightVert.glsl", "Assets/Shaders/pbrFragment.glsl", nullptr);
-			rendererData.environmentProgram = CreateShaderProgram("Assets/Shaders/environmentVert.glsl", "Assets/Shaders/environmentFrag.glsl", nullptr);
-			rendererData.cascadeDepthProgram = CreateShaderProgram("Assets/Shaders/depthVert.glsl", "Assets/Shaders/depthFrag.glsl", "Assets/Shaders/depthGeo.glsl");
 		}
 
 		void Iaonnis::Renderer3D::Initialize(uint32_t program)
@@ -349,8 +335,6 @@ namespace Iaonnis {
 			glBindBuffer(GL_UNIFORM_BUFFER, rendererData.lightSpaceMatrixUBO);
 			glBufferData(GL_UNIFORM_BUFFER, sizeof(CascadeMatrixSet), nullptr, GL_DYNAMIC_DRAW);
 			glBindBufferBase(GL_UNIFORM_BUFFER, 0, rendererData.lightSpaceMatrixUBO);
-			glBindBuffer(GL_UNIFORM_BUFFER, 0);
-			glUniformBlockBinding(rendererData.cascadeDepthProgram, glGetUniformBlockIndex(rendererData.cascadeDepthProgram, "LightMatrix"), 0);
 			glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
 			//=====================ScrenQuad Buffers===============================
@@ -387,83 +371,7 @@ namespace Iaonnis {
 
 			glBindVertexArray(0);
 			//=====================================================================
-
-			//====================Environment Cube Buffers=========================
-
-			float environmentCubeVertices[]
-			{
-				-1.0f,-1.0f,-1.0f,
-				 1.0f,-1.0f,-1.0f,
-				 1.0f, 1.0f,-1.0f,
-				-1.0f, 1.0f,-1.0f,
-
-				 1.0f,-1.0f, 1.0f,
-				-1.0f,-1.0f, 1.0f,
-				-1.0f, 1.0f, 1.0f,
-				 1.0f, 1.0f, 1.0f,
-
-				-1.0f,-1.0f, 1.0f,
-				-1.0f,-1.0f,-1.0f,
-				-1.0f, 1.0f,-1.0f,
-				-1.0f, 1.0f, 1.0f,
-
-				1.0f,-1.0f,-1.0f,
-				1.0f,-1.0f, 1.0f,
-				1.0f, 1.0f, 1.0f,
-				1.0f, 1.0f,-1.0f,
-
-				-1.0f, 1.0f,-1.0f,
-				 1.0f, 1.0f,-1.0f,
-				 1.0f, 1.0f, 1.0f,
-				-1.0f, 1.0f, 1.0f,
-
-				-1.0f,-1.0f, 1.0f,
-				 1.0f,-1.0f, 1.0f,
-				 1.0f,-1.0f,-1.0f,
-				-1.0f,-1.0f,-1.0f
-			};
-
-			float environmentCubeIndices[] =
-			{
-				0,1,2,
-				2,3,0,
-
-				4,5,6,
-				6,7,4,
-
-				8,9,10,
-				10,11,8,
-
-				12,13,14,
-				14,15,12,
-
-				16,17,18,
-				18,19,16,
-
-				20,21,22,
-				22,23,20,
-			};
-
-
-			glGenVertexArrays(1, &rendererData.environmentCubeVao);
-			glBindVertexArray(rendererData.environmentCubeVao);
-
-			glGenBuffers(1, &rendererData.environmentCubeVbo);
-			glBindBuffer(GL_ARRAY_BUFFER, rendererData.environmentCubeVbo);
-			glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 72, environmentCubeVertices, GL_STATIC_DRAW);
-
-			glGenBuffers(1, &rendererData.environmentCubeEbo);
-			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, rendererData.environmentCubeEbo);
-			glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(uint32_t) * 36, environmentCubeIndices, GL_STATIC_DRAW);
-
-			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
-
-			glEnableVertexAttribArray(0);
-
-			glBindVertexArray(0);
-
-			//=====================================================================
-
+			// 
 			//====================FBO================================
 			FRAMEBUFFER_DESC fboDesc;
 			fboDesc.n_Desc = 3;
@@ -527,12 +435,7 @@ namespace Iaonnis {
 			glDeleteBuffers(1, &rendererData.screenQuadVbo);
 			glDeleteBuffers(1, &rendererData.screenQuadEbo);
 
-			glDeleteVertexArrays(1, &rendererData.environmentCubeVao);
-			glDeleteBuffers(1, &rendererData.environmentCubeVbo);
-			glDeleteBuffers(1, &rendererData.environmentCubeEbo);
-
 			glDeleteProgram(rendererData.lightProgram);
-			glDeleteProgram(rendererData.environmentProgram);
 
 			glDeleteBuffers(1, &rendererData.directionalLightSSBO);
 			glDeleteBuffers(1, &rendererData.spotLigtSSBO);
@@ -545,90 +448,6 @@ namespace Iaonnis {
 			IGPUResource::DeleteFramebuffer(rendererData.lightPassFBO);
 
 			IAONNIS_LOG_INFO("Renderer has shutdown");
-		}
-
-		void CreateCascadeFBO()
-		{
-			for (int i = 0; i < rendererData.MAX_TYPE_OF_LIGHT; i++)
-			{
-				glGenFramebuffers(1, &rendererData.cascadeFBO[i]);
-
-				glGenTextures(1, &rendererData.cascadeTexture[i]);
-				glBindTexture(GL_TEXTURE_2D_ARRAY, rendererData.cascadeTexture[i]);
-
-				glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_DEPTH_COMPONENT32F,
-					rendererData.frameSize.x, rendererData.frameSize.y, 4, 0,
-					GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
-
-				glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-				glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-				glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-				glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-
-				constexpr float bordercolor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
-				glTexParameterfv(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_BORDER_COLOR, bordercolor);
-
-				glBindFramebuffer(GL_FRAMEBUFFER, rendererData.cascadeFBO[i]);
-				glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, rendererData.cascadeTexture[i], 0);
-				glDrawBuffer(GL_NONE);
-				glReadBuffer(GL_NONE);
-
-				int status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
-				if (status != GL_FRAMEBUFFER_COMPLETE)
-				{
-					std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!";
-					throw 0;
-				}
-			}
-
-			glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		}
-
-		void CalculateCascadeMatrix(Scene* scene)
-		{
-			std::shared_ptr<Camera> camera = scene->GetSceneCamera();
-			auto frustrum = camera->getFrustrum();
-			float cascadeLevels[4] = { frustrum.far / 50.0f, frustrum.far / 25.0f, frustrum.far / 10.0f, frustrum.far / 2.0f };
-
-			for (auto& entt : scene->getEntitiesWith<LightComponent>())
-			{
-				auto& lightComp = entt.GetComponent<LightComponent>();
-				auto& transform = entt.GetComponent<TransformComponent>();
-				if (entt.active == false || lightComp.type != LightType::Directional)
-					continue;
-
-				auto mat = GetLightSpaceMatrices(scene->GetSceneCamera(), lightComp.position, cascadeLevels, 4);
-				rendererData.lightSpaceMatrixArr[rendererData.lightSpaceMatrixPtr] = {
-					mat[0],mat[1],mat[2],mat[3]
-				};
-
-				rendererData.lightSpaceMatrixPtr++;
-			}
-		}
-
-		void LightPOVPass(Scene* scene)
-		{
-			std::shared_ptr<Camera> camera = scene->GetSceneCamera();
-			auto frustrum = camera->getFrustrum();
-			float cascadeLevels[4] = { frustrum.far / 50.0f, frustrum.far / 25.0f, frustrum.far / 10.0f, frustrum.far / 2.0f };
-
-			glBindBuffer(GL_UNIFORM_BUFFER, rendererData.lightSpaceMatrixUBO);
-			int l = 0;
-			for (auto& entt : scene->getEntitiesWith<LightComponent>())
-			{
-				auto& lightComp = entt.GetComponent<LightComponent>();
-				if (entt.active == false || lightComp.type != LightType::Directional)
-					continue;
-
-				CascadeMatrixSet* mat = &rendererData.lightSpaceMatrixArr[l];
-				
-				glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(CascadeMatrixSet), &mat);
-
-				glBindFramebuffer(GL_FRAMEBUFFER, rendererData.cascadeFBO[l]);
-				drawCommands(scene, rendererData.cascadeDepthProgram);
-				l++;
-			}
-			glBindBuffer(GL_UNIFORM_BUFFER, 0);
 		}
 
 		void LockFence(GLsync& sync)
@@ -652,35 +471,6 @@ namespace Iaonnis {
 						break;
 				}
 			}
-		}
-
-		void Iaonnis::Renderer3D::EnvironmentPass(Scene* scene)
-		{
-			// Make global...
-			IGPUResource::bindFramebuffer(rendererData.lightPassFBO);
-			glDepthMask(GL_FALSE);
-			glUseProgram(rendererData.environmentProgram);
-
-			glBindVertexArray(rendererData.environmentCubeVao);
-
-			glm::mat4 ivp = (scene->GetSceneCamera()->getViewProject());
-			int location = glGetUniformLocation(rendererData.environmentProgram, "ivp");
-
-			glUniformMatrix4fv(location, 1, GL_FALSE, &ivp[0][0]);
-
-			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_CUBE_MAP, scene->GetEnvironment()->GetCubeMapHandle().m_ID);
-
-			location = glGetUniformLocation(rendererData.environmentProgram, "environmentMap");
-			if (location == -1)
-			{
-				IAONNIS_LOG_ERROR("FAiled to find location in shader\.");
-			}
-			glUniform1i(location, 0);
-
-			glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
-
-			glDepthMask(GL_TRUE);
 		}
 
 		void UploadScene(Scene* scene)
@@ -806,8 +596,11 @@ namespace Iaonnis {
 						SpotLightUpload sLight;
 						sLight.color = lightComp.color;
 						sLight.color.w = glm::cos(glm::radians(lightComp.outerRadius));
-						sLight.position = glm::vec4(lightComp.position, glm::cos(glm::radians(lightComp.innerRadius)));
-						sLight.direction = glm::vec4(lightComp.spotDirection, 1.0f);
+
+						sLight.position = transform.model * glm::vec4(lightComp.position, 1.0);
+						sLight.position.w = glm::cos(glm::radians(lightComp.innerRadius));
+						
+						sLight.direction = transform.model * glm::vec4(lightComp.spotDirection, 1.0f);
 
 						rendererData.spotLightArr[rendererData.lightMeta.nSpotLight++] = sLight;
 						break;
@@ -885,6 +678,9 @@ namespace Iaonnis {
 			location = glGetUniformLocation(rendererData.lightProgram, "iMetallic");
 			glUniform1i(location, 5);
 			
+			location = glGetUniformLocation(rendererData.lightProgram, "viewMat");
+			auto view = scene->GetSceneCamera()->getView();
+			glUniformMatrix4fv(location, 1, GL_FALSE, &view[0][0]);
 
 			UploadLightData(scene);
 
@@ -959,7 +755,7 @@ namespace Iaonnis {
 
 		}
 
-		void Iaonnis::Renderer3D::drawCommands(Scene* scene, uint32_t program)
+		void drawCommands(Scene* scene, uint32_t program)
 		{
 			SCOPE_TIMER(__FUNCTION__);
 
@@ -1034,6 +830,8 @@ namespace Iaonnis {
 				UploadMaterialArray(scene);
 				scene->SetMaterialClean();
 			}
+
+			//SpotlightPass(scene);
 
 			/*CalculateCascadeMatrix(scene);
 			Renderer3D::LightPOVPass(scene);*/

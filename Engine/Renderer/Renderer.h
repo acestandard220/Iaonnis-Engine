@@ -54,15 +54,9 @@ namespace Iaonnis
 
 		void Initialize(uint32_t program);
 		void Shutdown();
-
-		void CreateCascadeFBO();
-		void CalculateCascadeMatrix(Scene* scene);
-		void LightPOVPass(Scene* scene);
 		
 		void LockFence(GLsync& sync);
 		void WaitFence(GLsync& sync);
-
-		void EnvironmentPass(Scene* scene);
 
 		void UploadScene(Scene* scene);
 		void UploadMaterialArray(Scene* scene);
@@ -82,7 +76,6 @@ namespace Iaonnis
 
 		//Temporary Output.
 		uint32_t GetRenderOutput();
-
 
 		void OnViewFrameResize(Event& event);
 

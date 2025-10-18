@@ -52,12 +52,7 @@ namespace Iaonnis
 						editor->SetSelectionIndex(index);
 						editor->SelectEntt(&entt);
 						editor->SetSelectionType(SelectionType::Entity);
-					}
-
-					if (ImGui::IsItemHovered() && ImGui::IsMouseClicked(1))
-					{
-						OnItemPopUpContext();
-					}
+					}					
 
 					index++;
 					{
@@ -102,10 +97,6 @@ namespace Iaonnis
 				editor->SetSelectionType(SelectionType::None);
 			}
 
-			if(ImGui::IsMouseClicked(1))
-			{
-				//ImGui::OpenPopup("##RightClickContext");
-			}
 		}
 		ImGui::End();
 	}
@@ -132,10 +123,17 @@ namespace Iaonnis
 						}
 					}
 				}
+				if (ImGui::MenuItem("Empty Entity"))
+				{
+					auto& newEntt = editor->getScene()->CreateEntity("Entity");
+					editor->Deselect();
+				}
 				if (ImGui::MenuItem("Cube"))
 				{
 					auto& newEntt = editor->getScene()->AddCube("Cube");
 					editor->Deselect();
+					editor->SelectEntt(&newEntt);
+					editor->SetSelectionType(SelectionType::Entity);
 				}
 				if (ImGui::MenuItem("Plane"))
 				{

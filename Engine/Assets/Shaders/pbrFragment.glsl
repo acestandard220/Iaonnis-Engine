@@ -38,6 +38,9 @@ uniform sampler2D iAo;
 uniform sampler2D iRoughness;
 uniform sampler2D iMetallic;
 
+uniform mat4 viewMat;
+uniform float cascadeDistances[4];
+
 layout(std430,binding = 1) buffer readonly Lights_directional
 {
 	DirectionalLight dLights[];
@@ -111,7 +114,7 @@ void main()
 	vec3 V = normalize(lightMeta.viewPos.rgb - pos.rgb);
 
 
-	vec3 Lo = vec3(0.0f,0.0f,0.0f); //Final Output Var
+	vec3 Lo = vec3(0.0f,0.0f,0.0f);
 
 	vec3 F0 = vec3(0.04);
     F0 = mix(F0, color, metallic);
@@ -157,7 +160,37 @@ void main()
 		float NdotL=max(dot(norm,L),0.0);
 		Lo += (kD * color/PI+specular) * radiance * NdotL;
 		}
-	vec3 ambient=vec3(0.03) * color * ao;
+
+	for(int i = 0; i < lightMeta.nSpotLights; i++)
+	{
+		vec3 L = normalize(sLights[i].position.rgb - pos);
+		vec3 H = normalize(V + L);
+		float distance = length(sLights[i].position.rgb - pos);
+		float attenuation = 1.0 / (distance * distance);
+		vec3 radiance = sLights[i].color.rgb * attenuation;
+
+		float theta = dot(L, normalize(-sLights[i].direction.rgb)); 
+		float epsilon = sLights[i].position.w - sLights[i].color.w;
+		float intensity = clamp((theta - sLights[i].color.w) / epsilon, 0.0, 1.0);
+
+		float NDF = DistributionGGX(norm, H, roughness);
+		float G   = GeometrySmith(norm, V, L, roughness);
+		vec3 F    = fresnelSchlick(max(dot(H, V), 0.0), F0);
+
+		vec3 kS = F;
+		vec3 kD = vec3(1.0) - kS;
+		kD *= 1.0 - metallic;
+
+		vec3 numerator = NDF * G * F;
+		float denominator = 4.0 * max(dot(norm, V), 0.0) * max(dot(norm, L), 0.0);
+		vec3 specular = numerator / max(denominator, 0.001);
+
+		float NdotL = max(dot(norm, L), 0.0);
+
+		Lo += ((kD * color / PI) + specular) * radiance * NdotL * intensity;
+	}
+	
+	vec3 ambient = vec3(0.03) * color * ao;
 	vec3 _color = ambient+Lo;
 	_color = _color/(_color+vec3(1.0));
 	_color = pow(_color,vec3(1.0/2.2));

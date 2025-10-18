@@ -55,4 +55,34 @@ namespace Iaonnis
 	private:
 
 	};
+
+	class LightSystem : public System
+	{
+	public:
+		LightSystem(entt::registry* reg)
+			:System(reg)
+		{
+
+		}
+		~LightSystem() {}
+
+		virtual void OnUpdate(float dt) override
+		{
+			for (auto entt : registery->view<LightComponent>())
+			{
+				auto& lightComp = registery->get<LightComponent>(entt);
+				switch (lightComp.type)
+				{
+				case LightType::Spot:
+					ComputeSpotLightMatrices(lightComp); break;
+				}
+
+			}
+		}
+		void ComputeSpotLightMatrices(LightComponent& lightComp)
+		{
+			lightComp.viewMatrix[0] = glm::lookAt(lightComp.position, lightComp.position + lightComp.spotDirection, glm::vec3(0.0, 1.0, 0.0));
+			lightComp.projectionMatrix[0] = glm::perspective(glm::radians(lightComp.innerRadius * 2.0f), 1.0f, 0.1f, 25.0f);
+		}
+	};
 }

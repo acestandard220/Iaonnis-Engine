@@ -86,12 +86,13 @@ namespace Iaonnis
 		Spot
 	};
 
-
+	/// <summary>
+	/// Position represents light position for spot lights and point light. It represents the direction for directional lights.
+	/// </summary>
 	struct LightComponent : public DerivedComponent
 	{
 		LightType type;
 		glm::vec4 color;
-
 		glm::vec3 position;
 
 
@@ -99,6 +100,11 @@ namespace Iaonnis
 		float innerRadius;
 		float outerRadius;
 		glm::vec3 spotDirection;
+
+		std::array<glm::mat4, 6> viewMatrix;
+		std::array<glm::mat4, 6> projectionMatrix;
+
+		uint32_t depthFBO;
 
 		LightComponent()
 			:type(LightType::Point), color(1.0f, 1.0f, 1.0f, 1.0f), innerRadius(5.0f), outerRadius(30.0f),spotDirection(0.0f,-1.0f,0.0f)

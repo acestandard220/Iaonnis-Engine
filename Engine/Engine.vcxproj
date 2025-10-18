@@ -159,6 +159,7 @@
     <ClCompile Include="Editor\Panels\SceneHierachy.cpp" />
     <ClCompile Include="Scene\Camera.cpp" />
     <ClCompile Include="Scene\Scene.cpp" />
+    <ClCompile Include="Scene\Systems.cpp" />
     <ClCompile Include="vendor\imgui\imgui.cpp" />
     <ClCompile Include="vendor\imgui\ImGuiFileDialog.cpp" />
     <ClCompile Include="vendor\imgui\imgui_demo.cpp" />

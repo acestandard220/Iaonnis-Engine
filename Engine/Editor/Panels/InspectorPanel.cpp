@@ -358,6 +358,7 @@ namespace Iaonnis
 				ImGui::Text("Spot Direction"); ImGui::SameLine(); ImGuiEx::InputFloat3("##SpotLightDirection", &component.spotDirection[0], 0.0f);
 			}
 		});
+
 		DrawComponent<CameraComponent>("Camera", *entity, [&](auto& component) {
 				std::shared_ptr<Camera> camera = component.camera;
 				static int selectedType = (int)camera->getCameraType();

@@ -49,7 +49,7 @@ void main()
     mat4 model = transformData[drawID]; //+aId which is what it should be does not work...chechking...
     mtlID = materialMap[cmdData.offset + aId];
 
-    FragPos = aPos;
+    FragPos = vec3(model * vec4(aPos,1.0f));
     gl_Position = mvp * model * vec4(aPos, 1.0);
 
     vec3 T = normalize(mat3(model) * aTan);
