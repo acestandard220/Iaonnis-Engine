@@ -1,4 +1,5 @@
 
+
 #include "Scene.h"
 #include "Entity.h"
 
@@ -14,12 +15,21 @@ namespace Iaonnis
         environment = cache->load<Environment>("Assets/Environment Maps/Skybox/skybox.txt");
 
         //addMesh("Assets/Models/Backpack/backpack.obj", "Backpack");
+        
         //AddCube("Cube A");
         //AddCube("Cube B");
         //AddCube("Cube C");
         //AddCube("Cube D");
-        //AddPointLight();
+
+        //AddPlane("Plane X");
+        //AddPlane("Plane Y");
+        //AddPlane("Plane Z");
+        //AddPlane("Plane W");
+
+        AddPointLight();
         //addSpotLight();
+
+        
 
        /* auto newMtl = cache->CreateNewMaterial("New Material");
         auto newCube = AddCube("Cube A");

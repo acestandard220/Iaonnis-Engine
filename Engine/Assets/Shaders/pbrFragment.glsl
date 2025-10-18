@@ -38,8 +38,9 @@ uniform sampler2D iAo;
 uniform sampler2D iRoughness;
 uniform sampler2D iMetallic;
 
-uniform mat4 viewMat;
-uniform float cascadeDistances[4];
+uniform sampler2D iDepthMap;
+uniform mat4 lightMatrix;
+
 
 layout(std430,binding = 1) buffer readonly Lights_directional
 {
@@ -101,10 +102,27 @@ vec3 fresnelSchlick(float cosTheta, vec3 F0)
 	return ggx1 * ggx2;
  }
 
+float ShadowCalculation(vec4 fragPosLightSpace)
+{
+    vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
+    projCoords = projCoords * 0.5 + 0.5;
+    
+    if(projCoords.z > 1.0)
+        return 0.0;
+    
+    float closestDepth = texture(iDepthMap, projCoords.xy).r; 
+    float currentDepth = projCoords.z;
+    float bias = 0.005;
+    float shadow = currentDepth - bias > closestDepth ? 1.0 : 0.0;
+    
+    return shadow;
+}
+
 void main()
 {
 	vec3 o = vec3(0.0);
 	vec3 pos = texture(position,UV).rgb;
+	vec4 lightSpacePos = lightMatrix * vec4(pos,1.0f);
 	vec3 norm = normalize(texture(normal,UV).rgb);
 	vec3 color = texture(albedo,UV).rgb;
 	float ao = texture(iAo,UV).r;
@@ -189,10 +207,13 @@ void main()
 
 		Lo += ((kD * color / PI) + specular) * radiance * NdotL * intensity;
 	}
+
+	float shadow = ShadowCalculation(lightSpacePos);
 	
 	vec3 ambient = vec3(0.03) * color * ao;
-	vec3 _color = ambient+Lo;
-	_color = _color/(_color+vec3(1.0));
+	vec3 _color = ambient + (1.0f - shadow) * Lo;
+
+	_color = _color/(_color + vec3(1.0));
 	_color = pow(_color,vec3(1.0/2.2));
 	
 	FragColor = vec4(_color,1.0);

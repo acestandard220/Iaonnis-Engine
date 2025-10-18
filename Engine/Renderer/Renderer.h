@@ -60,8 +60,9 @@ namespace Iaonnis
 
 		void UploadScene(Scene* scene);
 		void UploadMaterialArray(Scene* scene);
-
 		void UploadLightData(Scene* scene);
+
+		void GBufferPass(Scene* scene);
 		void LightPass(Scene* scene);
 
 		void SubmitDrawCommandData(DrawData data);

@@ -3,7 +3,7 @@
 
 struct Frustrum
 {
-	float near = 0.1f;
+	float near = 1.0f;
 	float far = 10000.0f;
 
 	float fov;

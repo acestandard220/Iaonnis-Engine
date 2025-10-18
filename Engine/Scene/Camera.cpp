@@ -54,6 +54,8 @@ Camera::Camera(const std::string& nme, const Frustrum& frust)
 	frustrum.up = frust.up;
 	frustrum.x = frust.x;
 	frustrum.y = frust.y;
+	frustrum.near = 1.0f;
+	frustrum.far = 10000.0f;
 
 	type = CameraType::Perspective;
 

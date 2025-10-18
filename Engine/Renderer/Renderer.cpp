@@ -96,7 +96,9 @@ namespace Iaonnis {
 			uint32_t screenQuadVbo;
 			uint32_t screenQuadEbo;
 
+			uint32_t gbufferProgram;
 			uint32_t lightProgram;
+			uint32_t depthProgram;
 
 			uint32_t lightSpaceMatrixUBO;
 
@@ -135,6 +137,13 @@ namespace Iaonnis {
 			int lightSpaceMatrixPtr = 0;
 
 			LightMeta lightMeta{};
+
+
+			uint32_t depthFBO;
+			uint32_t depthTexture;
+
+			glm::mat4 depthView;
+			glm::mat4 depthProjection;
 
 		}rendererData;
 
@@ -301,7 +310,9 @@ namespace Iaonnis {
 
 		void CreateShaders()
 		{
+			rendererData.gbufferProgram = CreateShaderProgram("Assets/Shaders/vertex.glsl", "Assets/Shaders/fragment.glsl");;
 			rendererData.lightProgram = CreateShaderProgram("Assets/Shaders/lightVert.glsl", "Assets/Shaders/pbrFragment.glsl", nullptr);
+			rendererData.depthProgram = CreateShaderProgram("Assets/Shaders/depthVert.glsl", "Assets/Shaders/depthFrag.glsl", nullptr);
 		}
 
 		void Iaonnis::Renderer3D::Initialize(uint32_t program)
@@ -408,6 +419,38 @@ namespace Iaonnis {
 
 			CreateGBuffer();
 
+
+			glGenFramebuffers(1, &rendererData.depthFBO);
+			glBindFramebuffer(GL_FRAMEBUFFER, rendererData.depthFBO);
+
+			glGenTextures(1, &rendererData.depthTexture);
+			glBindTexture(GL_TEXTURE_2D, rendererData.depthTexture);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, 1024, 1024, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
+
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+
+			GLfloat borderColor[] = { 1.0, 1.0, 1.0, 1.0 };
+			glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
+
+			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, rendererData.depthTexture, 0);
+			glDrawBuffer(GL_NONE);
+			glReadBuffer(GL_NONE);
+
+
+			rendererData.depthView = glm::lookAt(glm::vec3(3.0f, 3.0f, 8.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+			rendererData.depthProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, 1.0f, 25.0f);
+			
+
+			if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+			{
+				std::cerr << "Depth framebuffer not complete!" << std::endl;
+			}
+
+			glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
 			//=====================================
 			rendererData.commandPtr = 0;
 			rendererData.indexCount = 0;
@@ -416,6 +459,32 @@ namespace Iaonnis {
 			//=====================================
 
 			EventBus::subscribe(EventType::RESIZE_EVENT, OnViewFrameResize);
+		}
+
+		void RenderShadowMap(Scene* scene)
+		{
+			auto camera = scene->GetSceneCamera();
+			//rendererData.depthView = camera->getView();
+			//rendererData.depthProjection = camera->getProjection();
+
+			rendererData.depthView = glm::lookAt(glm::vec3(rendererData.pointLightArr[0].position), glm::vec3(0.0, 0.0, 0.0), glm::vec3(0.0, 1.0, 0.0));
+			//rendererData.depthProjection = glm::perspective(glm::radians(rendererData.spotLightArr[0].position.w), 1.0f, 1.0f, 10000.0f);
+
+			glViewport(0, 0, 1024, 1024);
+			glBindFramebuffer(GL_FRAMEBUFFER, rendererData.depthFBO);
+			glClear(GL_DEPTH_BUFFER_BIT);
+			glUseProgram(rendererData.depthProgram);
+
+			int location = glGetUniformLocation(rendererData.depthProgram, "view");
+			glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(rendererData.depthView));
+
+			location = glGetUniformLocation(rendererData.depthProgram, "projection");
+			glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(rendererData.depthProjection));
+
+			glCullFace(GL_FRONT);
+			drawCommands(scene, rendererData.depthProgram);
+			glCullFace(GL_BACK);
+			glViewport(0, 0, rendererData.frameSize.x, rendererData.frameSize.y);
 		}
 
 		void Shutdown()
@@ -634,6 +703,12 @@ namespace Iaonnis {
 			}
 		}
 
+		void GBufferPass(Scene* scene)
+		{
+			IGPUResource::bindFramebuffer(rendererData.gBuffer);
+			drawCommands(scene, rendererData.gbufferProgram);
+		}
+
 		void Iaonnis::Renderer3D::LightPass(Scene* scene)
 		{
 			resetLightPtrs();
@@ -664,6 +739,9 @@ namespace Iaonnis {
 			glActiveTexture(GL_TEXTURE5);
 			glBindTexture(GL_TEXTURE_2D, rendererData.gBuffer.m_Handles[(int)gBufferHandles::Metallic].m_ID);
 
+			glActiveTexture(GL_TEXTURE6);
+			glBindTexture(GL_TEXTURE_2D, rendererData.depthTexture);
+
 
 			int location = glGetUniformLocation(rendererData.lightProgram, "albedo");
 			glUniform1i(location, 0);
@@ -677,10 +755,16 @@ namespace Iaonnis {
 			glUniform1i(location, 4);
 			location = glGetUniformLocation(rendererData.lightProgram, "iMetallic");
 			glUniform1i(location, 5);
+			location = glGetUniformLocation(rendererData.lightProgram, "iDepthMap");
+			glUniform1i(location, 6);
+
+			location = glGetUniformLocation(rendererData.lightProgram, "lightMatrix");
+			glm::mat4 viewProj = rendererData.depthProjection * rendererData.depthView;
+			glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(viewProj));
 			
-			location = glGetUniformLocation(rendererData.lightProgram, "viewMat");
+			/*location = glGetUniformLocation(rendererData.lightProgram, "viewMat");
 			auto view = scene->GetSceneCamera()->getView();
-			glUniformMatrix4fv(location, 1, GL_FALSE, &view[0][0]);
+			glUniformMatrix4fv(location, 1, GL_FALSE, &view[0][0]);*/
 
 			UploadLightData(scene);
 
@@ -830,14 +914,11 @@ namespace Iaonnis {
 				UploadMaterialArray(scene);
 				scene->SetMaterialClean();
 			}
+			UploadLightData(scene);
 
-			//SpotlightPass(scene);
-
-			/*CalculateCascadeMatrix(scene);
-			Renderer3D::LightPOVPass(scene);*/
-
-			IGPUResource::bindFramebuffer(rendererData.gBuffer);
-			drawCommands(scene,program);
+			RenderShadowMap(scene);
+			
+			GBufferPass(scene);
 
 			LockFence(rendererData.gSync);
 
@@ -848,6 +929,7 @@ namespace Iaonnis {
 
 		uint32_t GetRenderOutput()
 		{
+			//return rendererData.depthTexture;
 			return rendererData.lightPassFBO.m_Handles[0].m_ID;
 		}
 
