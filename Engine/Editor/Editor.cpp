@@ -119,8 +119,8 @@ namespace Iaonnis
         }
 
 #ifdef _DEBUG
-        DebugWindow(stats);
 #endif 
+        DebugWindow(stats);
 
         menubar->OnUpdate();
 

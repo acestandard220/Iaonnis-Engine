@@ -24,13 +24,16 @@ namespace Iaonnis
 
 		};
 
-		enum SSBO_SLOT
+		enum class SSBO_SLOT
 		{
 			DirectionalLight = 1,
 			SpotLight = 2,
 			PointLight = 3,
 
-			MaterialSSBO = 4		
+			Material = 4,
+			CommandData = 5,
+			Transform = 6,
+			MaterialMap = 7
 		};
 
 		enum class gBufferHandles
@@ -51,6 +54,10 @@ namespace Iaonnis
 
 		void Initialize(uint32_t program);
 		void Shutdown();
+
+		void CreateCascadeFBO();
+		void CalculateCascadeMatrix(Scene* scene);
+		void LightPOVPass(Scene* scene);
 		
 		void LockFence(GLsync& sync);
 		void WaitFence(GLsync& sync);
@@ -59,14 +66,12 @@ namespace Iaonnis
 
 		void UploadScene(Scene* scene);
 		void UploadMaterialArray(Scene* scene);
-		void UploadMaterialsToGPU();
-		void UploadModelMatrixToGPU();
 
 		void UploadLightData(Scene* scene);
 		void LightPass(Scene* scene);
 
-		void submitDrawCommandData(DrawData data);
-		void closeDrawCommands();
+		void SubmitDrawCommandData(DrawData data);
+		void CloseDrawCommands();
 
 		void drawCommands(Scene* scene, uint32_t program);
 		void resetGeometryPtrs();

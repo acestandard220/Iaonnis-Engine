@@ -23,6 +23,8 @@ namespace Iaonnis
 
 		glm::vec3 tangent;
 		glm::vec3 bitangent;
+
+		uint32_t id;
 	};
 
 	struct SubMesh
@@ -50,8 +52,8 @@ namespace Iaonnis
 			SubMesh* getSubMesh(int index);
 			int getSubMeshCount()const { return subMeshes.size(); }
 
-			Vertice* getSubMeshVerticeStart(int index) { return &vertices[subMeshes[index].vertexOffset]; }
-			uint32_t* getSubMeshIndexStart(int index) { return &indices[subMeshes[index].vertexOffset]; }
+			Vertice* getSubMeshVerticeStart(int index);
+			uint32_t* getSubMeshIndexStart(int index);
 
 			const std::vector<Vertice>& getVertices()const;
 			const std::vector<uint32_t>& getIndices()const;

@@ -178,7 +178,7 @@ namespace Iaonnis
 	{
 		while (!glfwWindowShouldClose(window))
 		{
-			DISABLE_SCOPE_TIMER_PRINT
+			//DISABLE_SCOPE_TIMER_PRINT
 			{
 				SCOPE_TIMER("SCENE_ONUPDATE");
 				scene->OnUpdate(0.2f);

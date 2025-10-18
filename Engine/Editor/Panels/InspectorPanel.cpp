@@ -36,7 +36,7 @@ namespace Iaonnis
 
 		auto materialID = entt.GetSubMeshMaterial(subMeshIndex);
 
-		std::shared_ptr<Material> material = cache->getByUUID<Material>(materialID);
+		std::shared_ptr<Material> material = cache->GetByUUID<Material>(materialID);
 		const ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_FramePadding | ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_Framed;
 
 		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2.5, 2.5));
@@ -96,7 +96,7 @@ namespace Iaonnis
 
 	bool Inspector::InspectTextureMap(std::shared_ptr<Material> material, TextureMapType type)
 	{
-		auto imageResource = cache->getByUUID<ImageTexture>(material->GetMap(type));
+		auto imageResource = cache->GetByUUID<ImageTexture>(material->GetMap(type));
 		ImVec2 buttonSize = ImVec2(75, 75);
 
 		std::string label = Material::GetMapTypeString(type);
@@ -108,7 +108,7 @@ namespace Iaonnis
 			UUID materialID = material->GetID();
 			GeneralWindow::CacheViewer::SetActive([this, materialID, type](UUID id) -> void
 				{
-					auto mat = cache->getByUUID<Material>(materialID);
+					auto mat = cache->GetByUUID<Material>(materialID);
 					if (mat) {
 						mat->SetMap(type, id);
 						editor->getScene()->OnMaterialModified();
@@ -237,12 +237,12 @@ namespace Iaonnis
 
 			const ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_FramePadding | ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_Framed;
 
-			std::shared_ptr<Mesh> mesh = cache->getByUUID<Mesh>(meshFilter.meshID);
+			std::shared_ptr<Mesh> mesh = cache->GetByUUID<Mesh>(meshFilter.meshID);
 			if (ImGui::TreeNodeEx("Materials", flags))
 			{
 				for (auto& [mtlID, mtlDependants] : meshFilter.materialIDMap)
 				{
-					std::shared_ptr<Material> material = cache->getByUUID<Material>(mtlID);
+					std::shared_ptr<Material> material = cache->GetByUUID<Material>(mtlID);
 					std::string label = material->getName() + "##02301";
 					if (ImGui::TreeNodeEx(label.c_str(), flags))
 					{
@@ -277,7 +277,7 @@ namespace Iaonnis
 						ImGui::BeginGroup();
 						if (ImGuiEx::Button("New", ImVec2(70, 25), ImDrawFlags_RoundCornersTop))
 						{
-							auto newMaterial = cache->duplicate<Material>(cache->getDefaultMaterial()->GetID());
+							auto newMaterial = cache->duplicate<Material>(cache->GetDefaultMaterial()->GetID());
 							scene->AssignMaterial(entity->GetUUID(), newMaterial->GetID(), mtlListCurrentItem);
 
 							scene->OnEntityRegisteryModified();
@@ -377,7 +377,7 @@ namespace Iaonnis
 	{
 		if (ImGui::Begin("Inspect Material##InspectorChild",&materialInspector, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse))
 		{
-			auto material = cache->getByUUID<Material>(materialID);
+			auto material = cache->GetByUUID<Material>(materialID);
 			if (SubMeshMaterialTree(entity, index))
 			{
 				InspectTextureMap(material, TextureMapType::Albedo);

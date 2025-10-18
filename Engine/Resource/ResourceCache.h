@@ -22,6 +22,13 @@ namespace Iaonnis
 
 	};
 
+	struct ResourceCacheMeta
+	{
+		int loadedResources;
+
+		size_t totalImageTextureSize;
+	};
+
 	class ResourceCache
 	{
 	public:
@@ -77,7 +84,7 @@ namespace Iaonnis
 
 		//Avoid getting by name. Only use when you can are sure the asset/resource is the only one with that name.
 		template<class T>
-		std::shared_ptr<T> getByName(const std::string& name)
+		std::shared_ptr<T> GetByName(const std::string& name)
 		{
 			for (auto& [id, resource] : resources)
 			{
@@ -103,7 +110,7 @@ namespace Iaonnis
 		}
 
 		template<class T>
-		std::shared_ptr<T> getByUUID(UUID id)
+		std::shared_ptr<T> GetByUUID(UUID id)
 		{
 			if (resources.find(id) != resources.end())
 			{
@@ -143,6 +150,8 @@ namespace Iaonnis
 			newResource->load(path);
 			cache(path, newResource);
 
+			meta.loadedResources++;
+
 			STIMER_STOP(loadTime);
 			STIMER_PRINT(loadTime);
 			return newResource;
@@ -152,7 +161,7 @@ namespace Iaonnis
 		template<class T>
 		std::shared_ptr<T> duplicate(UUID originalResourceID)
 		{
-			std::shared_ptr<T> existing = getByUUID<T>(originalResourceID);
+			std::shared_ptr<T> existing = GetByUUID<T>(originalResourceID);
 			if (!existing)
 			{
 				IAONNIS_LOG_ERROR("Invalid resource id. (UUID = %s)", UUIDFactory::uuidToString(originalResourceID).c_str());
@@ -185,9 +194,9 @@ namespace Iaonnis
 
 
 		template<class T>
-		void use(UUID id , int count = 1)
+		void Use(UUID id , int count = 1)
 		{
-			auto resource = getByUUID<T>(id);
+			auto resource = GetByUUID<T>(id);
 			if (resource == nullptr)
 			{
 				IAONNIS_LOG_ERROR("Failed to find resource. (UUID = %s)", UUIDFactory::uuidToString(id));
@@ -198,9 +207,9 @@ namespace Iaonnis
 		}
 
 		template<class T>
-		void unsee(UUID id, int count = 1)
+		void UnUse(UUID id, int count = 1)
 		{
-			auto resource = getByUUID<T>(id);
+			auto resource = GetByUUID<T>(id);
 			if (resource == nullptr)
 			{
 				IAONNIS_LOG_ERROR("Failed to find resource. (Name = %s)", UUIDFactory::uuidToString(id));
@@ -210,9 +219,9 @@ namespace Iaonnis
 			resource->unuse(count);
 		}
 
-		std::shared_ptr<Material> CreateNewMaterial();
+		std::shared_ptr<Material> CreateNewMaterial(const std::string& name = "Material");
 
-		static std::shared_ptr<Material> getDefaultMaterial();
+		static std::shared_ptr<Material> GetDefaultMaterial();
 		std::shared_ptr<ImageTexture> GetDefaultDiffuse();
 		std::shared_ptr<ImageTexture> GetDefaultNormal();
 		std::shared_ptr<ImageTexture> GetDefaultByTextureType(TextureMapType type);
@@ -242,6 +251,8 @@ namespace Iaonnis
 			}
 	private:
 		std::unordered_map <UUID, std::shared_ptr<Resource>>resources;
+
+		ResourceCacheMeta meta;
 	};
 
 }

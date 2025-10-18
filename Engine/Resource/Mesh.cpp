@@ -75,6 +75,14 @@ namespace Iaonnis
 		return &subMeshes[index];
 	}
 
+    Vertice* Mesh::getSubMeshVerticeStart(int index) { 
+        return &vertices[subMeshes[index].vertexOffset]; 
+    }
+
+    uint32_t* Mesh::getSubMeshIndexStart(int idx) { 
+        return &indices[subMeshes[idx].vertexOffset]; 
+    }
+
     const std::vector<Vertice>& Mesh::getVertices() const
     {
         return vertices;
@@ -110,40 +118,40 @@ namespace Iaonnis
 
         //Counter ClockWise
        //Front (facing -Z)
-        mesh->vertices.push_back({ {-1.0f,-1.0f,-1.0f}, { 0.0f, 0.0f,-1.0f }, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } });
-        mesh->vertices.push_back({ { 1.0f,-1.0f,-1.0f}, { 0.0f, 0.0f,-1.0f }, { 1.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } });
-        mesh->vertices.push_back({ { 1.0f, 1.0f,-1.0f}, { 0.0f, 0.0f,-1.0f }, { 1.0f, 1.0f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } });
-        mesh->vertices.push_back({ {-1.0f, 1.0f,-1.0f}, { 0.0f, 0.0f,-1.0f }, { 0.0f, 1.0f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } });
+        mesh->vertices.push_back({ {-1.0f,-1.0f,-1.0f}, { 0.0f, 0.0f,-1.0f }, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }, 0});
+        mesh->vertices.push_back({ { 1.0f,-1.0f,-1.0f}, { 0.0f, 0.0f,-1.0f }, { 1.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }, 0});
+        mesh->vertices.push_back({ { 1.0f, 1.0f,-1.0f}, { 0.0f, 0.0f,-1.0f }, { 1.0f, 1.0f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }, 0});
+        mesh->vertices.push_back({ {-1.0f, 1.0f,-1.0f}, { 0.0f, 0.0f,-1.0f }, { 0.0f, 1.0f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }, 0});
 
         //Back (facing +Z)
-        mesh->vertices.push_back({ { 1.0f,-1.0f, 1.0f}, { 0.0f, 0.0f, 1.0f }, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } });
-        mesh->vertices.push_back({ {-1.0f,-1.0f, 1.0f}, { 0.0f, 0.0f, 1.0f }, { 1.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } });
-        mesh->vertices.push_back({ {-1.0f, 1.0f, 1.0f}, { 0.0f, 0.0f, 1.0f }, { 1.0f, 1.0f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } });
-        mesh->vertices.push_back({ { 1.0f, 1.0f, 1.0f}, { 0.0f, 0.0f, 1.0f }, { 0.0f, 1.0f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } });
+        mesh->vertices.push_back({ { 1.0f,-1.0f, 1.0f}, { 0.0f, 0.0f, 1.0f }, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }, 0});
+        mesh->vertices.push_back({ {-1.0f,-1.0f, 1.0f}, { 0.0f, 0.0f, 1.0f }, { 1.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }, 0});
+        mesh->vertices.push_back({ {-1.0f, 1.0f, 1.0f}, { 0.0f, 0.0f, 1.0f }, { 1.0f, 1.0f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }, 0});
+        mesh->vertices.push_back({ { 1.0f, 1.0f, 1.0f}, { 0.0f, 0.0f, 1.0f }, { 0.0f, 1.0f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }, 0});
 
         //Left (facing -X)
-        mesh->vertices.push_back({ {-1.0f,-1.0f, 1.0f}, {-1.0f, 0.0f, 0.0f }, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } });
-        mesh->vertices.push_back({ {-1.0f,-1.0f,-1.0f}, {-1.0f, 0.0f, 0.0f }, { 1.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } });
-        mesh->vertices.push_back({ {-1.0f, 1.0f,-1.0f}, {-1.0f, 0.0f, 0.0f }, { 1.0f, 1.0f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } });
-        mesh->vertices.push_back({ {-1.0f, 1.0f, 1.0f}, {-1.0f, 0.0f, 0.0f }, { 0.0f, 1.0f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } });
+        mesh->vertices.push_back({ {-1.0f,-1.0f, 1.0f}, {-1.0f, 0.0f, 0.0f }, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }, 0});
+        mesh->vertices.push_back({ {-1.0f,-1.0f,-1.0f}, {-1.0f, 0.0f, 0.0f }, { 1.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }, 0});
+        mesh->vertices.push_back({ {-1.0f, 1.0f,-1.0f}, {-1.0f, 0.0f, 0.0f }, { 1.0f, 1.0f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }, 0});
+        mesh->vertices.push_back({ {-1.0f, 1.0f, 1.0f}, {-1.0f, 0.0f, 0.0f }, { 0.0f, 1.0f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }, 0});
 
         //Right (facing +X)
-        mesh->vertices.push_back({ { 1.0f,-1.0f,-1.0f}, { 1.0f, 0.0f, 0.0f }, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } });
-        mesh->vertices.push_back({ { 1.0f,-1.0f, 1.0f}, { 1.0f, 0.0f, 0.0f }, { 1.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } });
-        mesh->vertices.push_back({ { 1.0f, 1.0f, 1.0f}, { 1.0f, 0.0f, 0.0f }, { 1.0f, 1.0f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } });
-        mesh->vertices.push_back({ { 1.0f, 1.0f,-1.0f}, { 1.0f, 0.0f, 0.0f }, { 0.0f, 1.0f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } });
+        mesh->vertices.push_back({ { 1.0f,-1.0f,-1.0f}, { 1.0f, 0.0f, 0.0f }, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }, 0});
+        mesh->vertices.push_back({ { 1.0f,-1.0f, 1.0f}, { 1.0f, 0.0f, 0.0f }, { 1.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }, 0});
+        mesh->vertices.push_back({ { 1.0f, 1.0f, 1.0f}, { 1.0f, 0.0f, 0.0f }, { 1.0f, 1.0f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }, 0});
+        mesh->vertices.push_back({ { 1.0f, 1.0f,-1.0f}, { 1.0f, 0.0f, 0.0f }, { 0.0f, 1.0f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }, 0});
 
         //Top (facing +Y)
-        mesh->vertices.push_back({ {-1.0f, 1.0f,-1.0f}, { 0.0f, 1.0f, 0.0f }, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } });
-        mesh->vertices.push_back({ { 1.0f, 1.0f,-1.0f}, { 0.0f, 1.0f, 0.0f }, { 1.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } });
-        mesh->vertices.push_back({ { 1.0f, 1.0f, 1.0f}, { 0.0f, 1.0f, 0.0f }, { 1.0f, 1.0f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } });
-        mesh->vertices.push_back({ {-1.0f, 1.0f, 1.0f}, { 0.0f, 1.0f, 0.0f }, { 0.0f, 1.0f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } });
+        mesh->vertices.push_back({ {-1.0f, 1.0f,-1.0f}, { 0.0f, 1.0f, 0.0f }, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }, 0});
+        mesh->vertices.push_back({ { 1.0f, 1.0f,-1.0f}, { 0.0f, 1.0f, 0.0f }, { 1.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }, 0});
+        mesh->vertices.push_back({ { 1.0f, 1.0f, 1.0f}, { 0.0f, 1.0f, 0.0f }, { 1.0f, 1.0f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }, 0});
+        mesh->vertices.push_back({ {-1.0f, 1.0f, 1.0f}, { 0.0f, 1.0f, 0.0f }, { 0.0f, 1.0f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }, 0});
 
         //Bottom (facing -Y)
-        mesh->vertices.push_back({ {-1.0f,-1.0f, 1.0f}, { 0.0f,-1.0f, 0.0f }, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } });
-        mesh->vertices.push_back({ { 1.0f,-1.0f, 1.0f}, { 0.0f,-1.0f, 0.0f }, { 1.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } });
-        mesh->vertices.push_back({ { 1.0f,-1.0f,-1.0f}, { 0.0f,-1.0f, 0.0f }, { 1.0f, 1.0f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } });
-        mesh->vertices.push_back({ {-1.0f,-1.0f,-1.0f}, { 0.0f,-1.0f, 0.0f }, { 0.0f, 1.0f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } });
+        mesh->vertices.push_back({ {-1.0f,-1.0f, 1.0f}, { 0.0f,-1.0f, 0.0f }, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }, 0});
+        mesh->vertices.push_back({ { 1.0f,-1.0f, 1.0f}, { 0.0f,-1.0f, 0.0f }, { 1.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }, 0});
+        mesh->vertices.push_back({ { 1.0f,-1.0f,-1.0f}, { 0.0f,-1.0f, 0.0f }, { 1.0f, 1.0f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }, 0});
+        mesh->vertices.push_back({ {-1.0f,-1.0f,-1.0f}, { 0.0f,-1.0f, 0.0f }, { 0.0f, 1.0f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }, 0});
 
         //Front
         mesh->indices.push_back(0); mesh->indices.push_back(1); mesh->indices.push_back(2);
@@ -187,10 +195,10 @@ namespace Iaonnis
         mesh->subMeshes.push_back(subMesh);
 
         //Bottom
-        mesh->vertices.push_back({ {-1.0f,-1.0f,-1.0f}, { 0.0f,-1.0f, 0.0f }, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f} });
-        mesh->vertices.push_back({ { 1.0f,-1.0f,-1.0f}, { 0.0f,-1.0f, 0.0f }, { 1.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f} });
-        mesh->vertices.push_back({ { 1.0f,-1.0f, 1.0f}, { 0.0f,-1.0f, 0.0f }, { 1.0f, 1.0f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f} });
-        mesh->vertices.push_back({ {-1.0f,-1.0f, 1.0f}, { 0.0f,-1.0f, 0.0f }, { 0.0f, 1.0f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f} });
+        mesh->vertices.push_back({ {-1.0f,-1.0f,-1.0f}, { 0.0f,-1.0f, 0.0f }, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f}, 0});
+        mesh->vertices.push_back({ { 1.0f,-1.0f,-1.0f}, { 0.0f,-1.0f, 0.0f }, { 1.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f}, 0});
+        mesh->vertices.push_back({ { 1.0f,-1.0f, 1.0f}, { 0.0f,-1.0f, 0.0f }, { 1.0f, 1.0f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f}, 0});
+        mesh->vertices.push_back({ {-1.0f,-1.0f, 1.0f}, { 0.0f,-1.0f, 0.0f }, { 0.0f, 1.0f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f}, 0});
 
         mesh->indices.push_back(0); mesh->indices.push_back(1); mesh->indices.push_back(2);
         mesh->indices.push_back(2); mesh->indices.push_back(3); mesh->indices.push_back(0);
@@ -278,6 +286,7 @@ namespace Iaonnis
             subMeshes[s].name = shape.name;
             subMeshes[s].vertexOffset = vertices.size();
             subMeshes[s].indexOffset = indices.size();
+            subMeshes[s].index = s;
 
             size_t startVertexCount = vertices.size();
             size_t startIndexCount = indices.size();
@@ -332,7 +341,7 @@ namespace Iaonnis
                         normal = glm::vec3(0.0f, 1.0f, 0.0f);
                     }
 
-                    vertices.push_back({ pos, normal, uv, glm::vec3(0.0f), glm::vec3(0.0f) });
+                    vertices.push_back({ pos, normal, uv, glm::vec3(0.0f), glm::vec3(0.0f), uint32_t(s)});
 
                     size_t vertexIndex = vertices.size() - 1;
                     if (vertexIndex > std::numeric_limits<uint32_t>::max())

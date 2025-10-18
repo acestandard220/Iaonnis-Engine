@@ -134,12 +134,12 @@ namespace Iaonnis
 				}
 				if (ImGui::MenuItem("Cube"))
 				{
-					auto& newEntt = editor->getScene()->addCube("Cube");
+					auto& newEntt = editor->getScene()->AddCube("Cube");
 					editor->Deselect();
 				}
 				if (ImGui::MenuItem("Plane"))
 				{
-					auto& newEntt = editor->getScene()->addPlane("Plane");
+					auto& newEntt = editor->getScene()->AddPlane("Plane");
 					editor->Deselect();
 				}
 				ImGui::EndMenu();
@@ -154,7 +154,7 @@ namespace Iaonnis
 				}
 				if (ImGui::MenuItem("Point Light"))
 				{
-					auto& newEntt = editor->getScene()->addPointLight();
+					auto& newEntt = editor->getScene()->AddPointLight();
 					editor->Deselect();
 				}
 				if (ImGui::MenuItem("Spot Light"))
@@ -190,7 +190,7 @@ namespace Iaonnis
 			if (ImGui::MenuItem("Remove"))
 			{
 				Entity* entity = editor->getSelectedEntity();
-				editor->getScene()->removeEntity(*entity);
+				editor->getScene()->RemoveEntity(*entity);
 
 				editor->Deselect();
 			}

@@ -4,7 +4,6 @@
 namespace Iaonnis
 {
     Entity* g = nullptr;
-   
 
     Iaonnis::Scene::Scene(const std::string& name)
         :cache(cache),name(name), displaySize(glm::vec2(800.0f, 800.0f))
@@ -13,12 +12,17 @@ namespace Iaonnis
         camera = std::make_shared<Camera>("Main Camera", glm::vec3(3.0f, 3.0f, 8.0f), displaySize.x, displaySize.y);
         environment = cache->load<Environment>("Assets/Environment Maps/Skybox/skybox.txt");
 
-        addPointLight();
+        //addMesh("Assets/Models/Backpack/backpack.obj", "Backpack");
+        //AddCube("Cube A");
+        //AddCube("Cube B");
+        //AddCube("Cube C");
+        //AddCube("Cube D");
+        AddPointLight();
 
-        std::shared_ptr<Material>newMtl = cache->CreateNewMaterial();
-        auto& cubeEntity = addCube("Cube");
-        AssignMaterial(cubeEntity.GetUUID(), newMtl->GetID(), 0);
-        
+        auto newMtl = cache->CreateNewMaterial("New Material");
+        auto newCube = AddCube("Cube A");
+        AssignMaterial(newCube.GetUUID(), newMtl->GetID(), 0);
+
         //Systems Init()
         systems.emplace_back(std::make_unique<TransformSystem>(&registry));
 
@@ -36,7 +40,7 @@ namespace Iaonnis
             system->OnUpdate(dt);
     }
 
-    Entity& Iaonnis::Scene::createEntity(const std::string& name)
+    Entity& Iaonnis::Scene::CreateEntity(const std::string& name)
     {
         Entity entity{ registry.create(),this};
 
@@ -54,7 +58,7 @@ namespace Iaonnis
 
     Entity& Scene::CreateCamera(const std::string& name)
     {
-        Entity& entity = createEntity(name);
+        Entity& entity = CreateEntity(name);
         auto camera = std::make_shared<Camera>(name, glm::vec3(0.0f, -2.0f, -5.0f), displaySize.x, displaySize.y);
         auto& camComp = entity.AddComponent<CameraComponent>();
         camComp.camera = camera;
@@ -67,9 +71,9 @@ namespace Iaonnis
     {
         std::shared_ptr<Mesh> meshResource = cache->load<Mesh>(path);
         int subMeshCount = meshResource->getSubMeshCount();
-        UUID defaultMaterialID = cache->getDefaultMaterial()->GetID();
+        UUID defaultMaterialID = cache->GetDefaultMaterial()->GetID();
 
-        Entity& entity = createEntity(meshResource->getName());
+        Entity& entity = CreateEntity(meshResource->getName());
         auto& meshFilterComp = entity.AddComponent<MeshFilterComponent>(meshResource->GetID());
         meshFilterComp.names.resize(subMeshCount);
         
@@ -84,11 +88,11 @@ namespace Iaonnis
 
     Entity& Scene::addMesh(UUID meshID)
     {
-        std::shared_ptr<Mesh> meshResource = cache->getByUUID<Mesh>(meshID);
+        std::shared_ptr<Mesh> meshResource = cache->GetByUUID<Mesh>(meshID);
         int subMeshCount = meshResource->getSubMeshCount();
-        UUID defaultMaterialID = cache->getDefaultMaterial()->GetID();
+        UUID defaultMaterialID = cache->GetDefaultMaterial()->GetID();
 
-        Entity& entity = createEntity(meshResource->getName());
+        Entity& entity = CreateEntity(meshResource->getName());
         auto& meshFilterComp = entity.AddComponent<MeshFilterComponent>(meshResource->GetID());
         meshFilterComp.names.resize(subMeshCount);
 
@@ -102,7 +106,7 @@ namespace Iaonnis
 
     Entity& Iaonnis::Scene::addDirectionalLight(glm::vec3 direction )
     {
-        Entity& entity = createEntity("Directional Light");
+        Entity& entity = CreateEntity("Directional Light");
         auto& lightComp = entity.AddComponent<LightComponent>();
         lightComp.color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
         lightComp.type = LightType::Directional;
@@ -113,7 +117,7 @@ namespace Iaonnis
 
     Entity& Scene::addSpotLight()
     {
-        Entity& entity = createEntity("Spot Light");
+        Entity& entity = CreateEntity("Spot Light");
         auto& lightComp = entity.AddComponent<LightComponent>();
         lightComp.color = glm::vec4(0.8f, 0.6f, 0.6f, 1.0f);
         lightComp.type = LightType::Spot;
@@ -126,9 +130,9 @@ namespace Iaonnis
         return entity;
     }
 
-    Entity& Scene::addPointLight()
+    Entity& Scene::AddPointLight()
     {
-        Entity& entity = createEntity("Point Light");
+        Entity& entity = CreateEntity("Point Light");
         auto& lightComp = entity.AddComponent<LightComponent>();
         lightComp.color = glm::vec4(0.8f, 0.6f, 0.6f, 1.0f);
         lightComp.type = LightType::Point;
@@ -137,21 +141,21 @@ namespace Iaonnis
         return entity;
     }
 
-    Entity& Scene::addCamera()
+    Entity& Scene::AddCamera()
     {
-        Entity& entity = createEntity("Camera");
+        Entity& entity = CreateEntity("Camera");
         auto& cameraComp = entity.GetComponent<CameraComponent>();
         cameraComp;
 
         return entity;
     }
 
-    Entity& Scene::addCube(const std::string& name)
+    Entity& Scene::AddCube(const std::string& name)
     {
-        auto meshResource = cache->getByName<Mesh>("Cube");
-        UUID defaultMtlID = cache->getDefaultMaterial()->GetID();
+        auto meshResource = cache->GetByName<Mesh>("Cube");
+        UUID defaultMtlID = cache->GetDefaultMaterial()->GetID();
 
-        Entity& entity = createEntity(name);
+        Entity& entity = CreateEntity(name);
         auto& meshFilterComp = entity.AddComponent<MeshFilterComponent>(meshResource->GetID());
 
         meshFilterComp.names.resize(1);
@@ -162,13 +166,13 @@ namespace Iaonnis
         return entity;
     }
 
-    Entity& Scene::addPlane(const std::string& name)
+    Entity& Scene::AddPlane(const std::string& name)
     {
-        auto meshResource = cache->getByName<Mesh>("Plane");
-        UUID defaultMtlID = cache->getDefaultMaterial()->GetID();;
+        auto meshResource = cache->GetByName<Mesh>("Plane");
+        UUID defaultMtlID = cache->GetDefaultMaterial()->GetID();;
 
-        Entity& entity = createEntity(name);
-        auto& meshFilterComp = entity.AddComponent<MeshFilterComponent>(cache->getByName<Mesh>("Plane")->GetID());
+        Entity& entity = CreateEntity(name);
+        auto& meshFilterComp = entity.AddComponent<MeshFilterComponent>(cache->GetByName<Mesh>("Plane")->GetID());
         meshFilterComp.names.resize(1);
 
         AssignMaterial(entity.GetUUID(), defaultMtlID, 0);
@@ -180,9 +184,9 @@ namespace Iaonnis
     {
         auto& entt = GetEntity(entityID);
         UUID previousMTLID = entt.GetSubMeshMaterial(subMeshIndex);
-        cache->unsee<Material>(previousMTLID);
+        cache->UnUse<Material>(previousMTLID);
         entt.AssignMaterial(mtlID, subMeshIndex);
-        cache->use<Material>(mtlID);
+        cache->Use<Material>(mtlID);
     }
 
     void Scene::ResetMaterial(UUID entityID, int subMeshIndex)
@@ -190,9 +194,9 @@ namespace Iaonnis
         auto& entt = GetEntity(entityID);
 
         UUID previousMTLID = entt.GetSubMeshMaterial(subMeshIndex);
-        cache->unsee<Material>(previousMTLID);
+        cache->UnUse<Material>(previousMTLID);
         entt.ResetMaterial(subMeshIndex);
-        cache->use<Material>(cache->getDefaultMaterial()->GetID());
+        cache->Use<Material>(cache->GetDefaultMaterial()->GetID());
     }
 
     void Scene::AssigGlobalMaterial(UUID entityID, UUID mtlID)
@@ -202,11 +206,11 @@ namespace Iaonnis
         auto materials = entt.GetMaterialsInUse();
         for (auto& mtl : materials)
         {
-            cache->unsee<Material>(mtl);
+            cache->UnUse<Material>(mtl);
         }      
 
         entt.AssignGlobalMaterial(mtlID);
-        cache->use<Material>(cache->getDefaultMaterial()->GetID(), entt.GetSubMeshCount());
+        cache->Use<Material>(cache->GetDefaultMaterial()->GetID(), entt.GetSubMeshCount());
     }
 
     void Scene::ResetAllMaterial(UUID entityID)
@@ -216,15 +220,15 @@ namespace Iaonnis
         auto materials = entt.GetMaterialsInUse();
         for (auto& mtl : materials)
         {
-            cache->unsee<Material>(mtl);
+            cache->UnUse<Material>(mtl);
         }
 
         entt.ResetAllSubMeshMaterials();
-        cache->use<Material>(cache->getDefaultMaterial()->GetID(), entt.GetSubMeshCount());
+        cache->Use<Material>(cache->GetDefaultMaterial()->GetID(), entt.GetSubMeshCount());
     }
 
 
-    void Scene::removeEntity(Entity entity)
+    void Scene::RemoveEntity(Entity entity)
     {
         removeFromVector<Entity>(entities, entity);
         registry.destroy(entity.GetBaseEntity());
@@ -248,7 +252,7 @@ namespace Iaonnis
         camera->setAspectRatio(frameResizeEvent->frameSizeX, frameResizeEvent->frameSizeY);
     }
 
-    void Scene::save(filespace::filepath path)
+    void Scene::Save(filespace::filepath path)
     {
         fkyaml::node node{
             {"Name",name},

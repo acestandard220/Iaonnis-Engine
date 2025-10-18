@@ -1,5 +1,7 @@
 #version 450 core
 layout(location = 0) out vec4 FragColor;
+layout(location = 1) out vec4 BloomColor;
+
 in vec2 UV;
 
 struct DirectionalLight
@@ -109,11 +111,12 @@ void main()
 	vec3 V = normalize(lightMeta.viewPos.rgb - pos.rgb);
 
 
-	vec3 Lo = vec3(0.0f,0.0f,0.0f);
-	vec3 F0 = vec3(0.04);
-    F0 = mix(F0,color,metallic);
+	vec3 Lo = vec3(0.0f,0.0f,0.0f); //Final Output Var
 
-	for(int i = 0;i<lightMeta.nPointLights;i++)
+	vec3 F0 = vec3(0.04);
+    F0 = mix(F0, color, metallic);
+
+	for(int i = 0; i < lightMeta.nPointLights; i++)
 	{
 		vec3 L = normalize(pLights[i].position.rgb - pos.rgb);
 		vec3 H = normalize(V + L);
@@ -124,23 +127,24 @@ void main()
 		float NDF = DistributionGGX(norm, H,roughness);
 		float G = GeometrySmith(norm, V, L, roughness);
 		vec3 F  = fresnelSchlick(max(dot(H, V),0.0),F0);
+		
 		vec3 kS = F;
-		vec3 kD = vec3(1.0)-kS;
-		kD *=1.0-metallic;
-		vec3 numerator =NDF * G * F;
+		vec3 kD = vec3(1.0) - kS;
+		kD *= 1.0 - metallic;
+		
+		vec3 numerator = NDF * G * F;
 		float denominator=4.0 * max(dot(norm,V),0.0) * max(dot(norm,L),0.0);
-		vec3 specular =numerator/max(denominator,0.001);
-		//addtooutgoingradiance Lo
-		float NdotL=max(dot(norm,L),0.0);
-		Lo += (kD * color/PI+specular) * radiance * NdotL;
+
+		vec3 specular = numerator/max(denominator,0.001);
+		float NdotL= max(dot(norm,L),0.0);
+		Lo += (kD * color / PI + specular) * radiance * NdotL;
 	}
 
 	for(int i = 0; i < lightMeta.nDirectionalLights; i++) {
 		vec3 L = normalize(-dLights[i].direction.rgb);
 		vec3 H = normalize(V + L);
-		vec3 radiance = pLights[i].color.rgb;
+		vec3 radiance = dLights[i].color.rgb;
 
-    // ... (copy PBR calculation from point light loop)
 		float NDF = DistributionGGX(norm, H,roughness);
 		float G = GeometrySmith(norm, V, L, roughness);
 		vec3 F  = fresnelSchlick(max(dot(H, V),0.0),F0);
@@ -150,7 +154,6 @@ void main()
 		vec3 numerator =NDF * G * F;
 		float denominator=4.0 * max(dot(norm,V),0.0) * max(dot(norm,L),0.0);
 		vec3 specular =numerator/max(denominator,0.001);
-		//addtooutgoingradiance Lo
 		float NdotL=max(dot(norm,L),0.0);
 		Lo += (kD * color/PI+specular) * radiance * NdotL;
 		}
@@ -158,7 +161,15 @@ void main()
 	vec3 _color = ambient+Lo;
 	_color = _color/(_color+vec3(1.0));
 	_color = pow(_color,vec3(1.0/2.2));
+	
 	FragColor = vec4(_color,1.0);
+    
+	float brightness = dot(FragColor.rgb, vec3(0.5126, 0.7152, 0.5722));
+	if(brightness>1.0f)
+		BloomColor = vec4(_color,1.0);
+	else
+		BloomColor = vec4(0.0f,0.0f,0.0f,1.0f);
+
 }
 
 

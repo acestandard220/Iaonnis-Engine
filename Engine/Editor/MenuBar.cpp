@@ -25,7 +25,7 @@ namespace Iaonnis
 				if (ImGui::MenuItem("New Scene", "Ctrl + N"))
 				{
 					Scene* scene = editor->getScene();
-					scene->save(scene->getName() + ".yaml");
+					scene->Save(scene->getName() + ".yaml");
 					editor->CreateScene();
 				}
 				if (ImGui::MenuItem("Open Scene", "Ctrl + O"))
@@ -39,7 +39,7 @@ namespace Iaonnis
 					std::string returnPath = FileDialog::SaveFileDialog();
 					if (!returnPath.empty())
 					{
-						editor->getScene()->save(returnPath);
+						editor->getScene()->Save(returnPath);
 					}
 				}
 

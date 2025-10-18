@@ -197,6 +197,7 @@
     <ClInclude Include="GPU\GPUResource.h" />
     <ClInclude Include="Editor\MenuBar.h" />
     <ClInclude Include="Renderer\Renderer.h" />
+    <ClInclude Include="Renderer\RendererResources.h" />
     <ClInclude Include="Resource\Environment.h" />
     <ClInclude Include="Resource\ImageTexture.h" />
     <ClInclude Include="Resource\Material.h" />

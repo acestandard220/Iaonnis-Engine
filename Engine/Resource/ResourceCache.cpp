@@ -14,7 +14,7 @@ namespace Iaonnis
 
 
 
-	std::shared_ptr<Material> ResourceCache::getDefaultMaterial()
+	std::shared_ptr<Material> ResourceCache::GetDefaultMaterial()
 	{
 		return defaultMaterial;
 	}
@@ -67,7 +67,9 @@ namespace Iaonnis
 
 	ResourceCache::ResourceCache()
 	{
-		//stbi_set_flip_vertically_on_load(true);
+		stbi_set_flip_vertically_on_load(true);
+
+		memset(&meta, 0, sizeof(ResourceCacheMeta));
 
 		auto cube = create<Mesh>("Cube.mesh");
 		auto plane = create<Mesh>("Plane.mesh");
@@ -99,9 +101,10 @@ namespace Iaonnis
 
 	}
 
-	std::shared_ptr<Material> ResourceCache::CreateNewMaterial()
+	std::shared_ptr<Material> ResourceCache::CreateNewMaterial(const std::string& name)
 	{
-		filespace::filepath resourcePath = "Material.yaml";
+
+		filespace::filepath resourcePath = name + ".yaml";
 		resourcePath = GenerateDuplicateResourceName<Material>(resourcePath);
 
 		std::shared_ptr<Material> newResource = create<Material>(resourcePath);

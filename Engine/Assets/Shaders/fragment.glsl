@@ -16,6 +16,7 @@ in vec2 uv;
 in mat3 TBN;
 
 flat in int drawID;
+flat in int mtlID;
 
 struct AllTexture
 {
@@ -31,24 +32,24 @@ struct AllTexture
     vec4 _scale;
 };
 
-layout(std430,binding = 4) readonly buffer AllTextureMap{
+layout(std430, binding = 4) readonly buffer AllTextureMap{
     AllTexture allTextures[];
 };
 
 void main()
 {
-    aAlbedo = texture(sampler2D(allTextures[drawID]._albedo),uv) * allTextures[drawID]._color;
-
+    aAlbedo = texture(sampler2D(allTextures[mtlID]._albedo),uv) * allTextures[mtlID]._color;
+    
     aPosition = vec4(FragPos,1.0f);
 
-    vec3 normTextureValue = vec3(texture(sampler2D(allTextures[drawID]._normal),uv).rgb);
+    vec3 normTextureValue = vec3(texture(sampler2D(allTextures[mtlID]._normal),uv).rgb);
     normTextureValue = normalize(normTextureValue * 2.0f -1.0f);
     normTextureValue = normalize(TBN* normTextureValue);
     aNormals = vec4(normTextureValue, 1.0f);
 
-    aAO = texture(sampler2D(allTextures[drawID]._ao),uv).r;
+    aAO = texture(sampler2D(allTextures[mtlID]._ao),uv).r;
 
-    aRoughness = texture(sampler2D(allTextures[drawID]._roughness),uv).r;
+    aRoughness = texture(sampler2D(allTextures[mtlID]._roughness),uv).r;
 
-    aMetallic  = texture(sampler2D(allTextures[drawID]._metallic),uv).r;
+    aMetallic  = texture(sampler2D(allTextures[mtlID]._metallic),uv).r;
 }

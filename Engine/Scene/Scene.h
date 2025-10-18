@@ -13,11 +13,11 @@ namespace Iaonnis
 			~Scene();
 
 
-			void save(filespace::filepath path);
+			void Save(filespace::filepath path);
 
 			void OnUpdate(float dt);
 
-			Entity& createEntity(const std::string& name);
+			Entity& CreateEntity(const std::string& name);
 			Entity& CreateCamera(const std::string& name);
 
 			Entity& addMesh(filespace::filepath path, const std::string& name);
@@ -25,12 +25,12 @@ namespace Iaonnis
 
 			Entity& addDirectionalLight(glm::vec3 direction = glm::vec3(1.0f, 0.0f, 0.0f));
 			Entity& addSpotLight();
-			Entity& addPointLight();
+			Entity& AddPointLight();
 
-			Entity& addCamera();
+			Entity& AddCamera();
 
-			Entity& addCube(const std::string& name);
-			Entity& addPlane(const std::string& name);
+			Entity& AddCube(const std::string& name);
+			Entity& AddPlane(const std::string& name);
 
 			void AssignMaterial(UUID entityID, UUID mtlID, int subMeshIndex);
 			void AssigGlobalMaterial(UUID entityID, UUID mtlID);
@@ -38,7 +38,7 @@ namespace Iaonnis
 			void ResetMaterial(UUID entityID, int subMeshIndex);
 			void ResetAllMaterial(UUID entityID);
 
-			void removeEntity(Entity entity);
+			void RemoveEntity(Entity entity);
 
 			template<typename... T>
 			std::vector<Entity> getEntitiesWith() {

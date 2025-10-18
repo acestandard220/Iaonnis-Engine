@@ -123,7 +123,7 @@ namespace Iaonnis
 
 		void ResetMaterial(int subMeshIndex)
 		{
-			return AssignMaterial(ResourceCache::getDefaultMaterial()->GetID(), subMeshIndex);
+			return AssignMaterial(ResourceCache::GetDefaultMaterial()->GetID(), subMeshIndex);
 		}
 
 		void ResetAllSubMeshMaterials()
