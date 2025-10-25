@@ -53,7 +53,7 @@ namespace Iaonnis
 			if (ImGuiEx::ImageButton("##RemoveMaterial", ResourceCache::GetIcon(IconType::Remove)->getTextureHandle().m_ID, ImVec2(lineHeight, lineHeight)))
 			{
 				scene->ResetMaterial(entt.GetUUID(), subMeshIndex);
-				editor->getScene()->OnEntityRegisteryModified();
+				editor->GetScene()->OnEntityRegisteryModified();
 				IAONNIS_LOG_ERROR("Material removed. Sub Mesh is using default material.");
 			}
 
@@ -67,7 +67,7 @@ namespace Iaonnis
 				}
 				else {
 					scene->AssignMaterial(entt.GetUUID(), newMtlResource->GetID(), subMeshIndex);
-					editor->getScene()->OnEntityRegisteryModified();
+					editor->GetScene()->OnEntityRegisteryModified();
 					IAONNIS_LOG_INFO("Material Duplicated Successfully");
 				}
 			}
@@ -84,7 +84,7 @@ namespace Iaonnis
 			{
 				auto newMtlResource = cache->CreateNewMaterial();
 				scene->AssignMaterial(entt.GetUUID(), newMtlResource->GetID(), subMeshIndex);
-				editor->getScene()->OnEntityRegisteryModified();
+				editor->GetScene()->OnEntityRegisteryModified();
 				IAONNIS_LOG_INFO("New Material Created Successfully. (UUID = %s)", UUIDFactory::uuidToString(newMtlResource->GetID()).c_str());
 			}
 
@@ -111,7 +111,7 @@ namespace Iaonnis
 					auto mat = cache->GetByUUID<Material>(materialID);
 					if (mat) {
 						mat->SetMap(type, id);
-						editor->getScene()->OnMaterialModified();
+						editor->GetScene()->OnMaterialModified();
 					}
 				});
 		}
@@ -124,7 +124,7 @@ namespace Iaonnis
 		{
 			auto duplicateResource = cache->duplicate<ImageTexture>(cache->GetDefaultByTextureType(type)->GetID());
 			material->SetMap(type, duplicateResource->GetID());
-			editor->getScene()->OnMaterialModified();//OnMaterialModified
+			editor->GetScene()->OnMaterialModified();//OnMaterialModified
 		}
 		if (ImGuiEx::Button("Open", ImVec2(70, 20)))
 		{
@@ -138,7 +138,7 @@ namespace Iaonnis
 				}
 				else {
 					material->SetMap(type, loadedTexture->GetID());
-					editor->getScene()->OnMaterialModified();//OnMaterialModified
+					editor->GetScene()->OnMaterialModified();//OnMaterialModified
 				}
 			}
 		}
@@ -146,7 +146,7 @@ namespace Iaonnis
 		{
 			auto defaultTexture = cache->GetDefaultByTextureType(type);
 			material->SetMap(type, defaultTexture->GetID());
-			editor->getScene()->OnMaterialModified();//OnMaterialModified
+			editor->GetScene()->OnMaterialModified();//OnMaterialModified
 		}
 		ImGui::EndGroup();
 		ImGui::Text(label.c_str());
@@ -164,7 +164,7 @@ namespace Iaonnis
 				if (ImGui::MenuItem(mtl->getName().c_str()))
 				{
 					scene->AssignMaterial(entt.GetUUID(), mtl->GetID(), index);
-					editor->getScene()->OnEntityRegisteryModified();
+					editor->GetScene()->OnEntityRegisteryModified();
 				}
 			}
 			ImGui::EndPopup();
@@ -177,7 +177,7 @@ namespace Iaonnis
 				if (ImGui::MenuItem(mtl->getName().c_str()))
 				{
 					scene->AssigGlobalMaterial(entt.GetUUID(), mtl->GetID());
-					editor->getScene()->OnEntityRegisteryModified();
+					editor->GetScene()->OnEntityRegisteryModified();
 				}
 			}
 			ImGui::EndPopup();
@@ -210,7 +210,7 @@ namespace Iaonnis
 
 	void Inspector::InspectEntity(Entity* entity)
 	{
-		auto cache = editor->getScene()->getCache();
+		auto cache = editor->GetScene()->getCache();
 
 		DrawComponent<TagComponent>("Entity", *entity, [&](auto& component)
 		{
@@ -226,7 +226,7 @@ namespace Iaonnis
 				ImGuiEx::InputFloat3("Rotation", &component.rotation[0], 0.0f) ||
 				ImGuiEx::InputFloat3("Scale", &component.scale[0], 1.0f))
 			{
-				editor->getScene()->OnEntityRegisteryModified();
+				editor->GetScene()->OnEntityRegisteryModified();
 			}
 		});
 		DrawComponent<MeshFilterComponent>("Mesh Filter", *entity, [&](auto& component)
@@ -297,13 +297,13 @@ namespace Iaonnis
 						if (ImGuiEx::Button("Remove", ImVec2(70, 25)))
 						{
 							scene->ResetMaterial(entity->GetUUID(), mtlListCurrentItem);
-							editor->getScene()->OnEntityRegisteryModified(); //OnMaterialModified
+							editor->GetScene()->OnEntityRegisteryModified(); //OnMaterialModified
 						}
 
 						if (ImGuiEx::Button("Reset All", ImVec2(70, 25)))
 						{
 							scene->ResetAllMaterial(entity->GetUUID());
-							editor->getScene()->OnEntityRegisteryModified(); //OnMaterialModified
+							editor->GetScene()->OnEntityRegisteryModified(); //OnMaterialModified
 						}
 
 						if (ImGuiEx::Button("Assign", ImVec2(70, 25)))
@@ -397,7 +397,7 @@ namespace Iaonnis
 	void Inspector::OnUpdate(float dt)
 	{
 		SCOPE_TIMER(__FUNCTION__);
-		scene = editor->getScene();
+		scene = editor->GetScene();
 		cache = scene->getCache().get();
 
 

@@ -11,13 +11,13 @@ namespace Iaonnis
     {
         cache = std::make_shared<ResourceCache>();
         camera = std::make_shared<Camera>("Main Camera", glm::vec3(3.0f, 3.0f, 8.0f), displaySize.x, displaySize.y);
-        environment = cache->load<Environment>("Assets/Environment Maps/Skybox/skybox.txt");
+        //environment = cache->load<Environment>("Assets/Environment Maps/Skybox/skybox.txt");
 
         //addMesh("Assets/Models/Backpack/backpack.obj", "Backpack");
-        //AddCube("Cube A");
-        //AddCube("Cube B");
-        //AddCube("Cube C");
-        //AddCube("Cube D");
+        AddCube("Cube A");
+        AddCube("Cube B");
+        AddCube("Cube C");
+        AddCube("Cube D");
         //AddPointLight();
         //addSpotLight();
 

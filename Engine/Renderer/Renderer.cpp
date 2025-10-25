@@ -109,8 +109,8 @@ namespace Iaonnis {
 			FramebufferHandle gBuffer;
 
 
-			static const int MAX_VERTEX = 10000000;
-			static const int MAX_INDICES = 15000000;
+			static const int MAX_VERTEX = 300000;
+			static const int MAX_INDICES = 500000;
 			static const int MAX_DRAW_COMMANDS = 300;
 			static const int MAX_MATERIALS = 300;
 			static const int MAX_TYPE_OF_LIGHT = 300;

@@ -126,6 +126,12 @@
     <ClCompile Include="Scene\Systems.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Editor\Panels\ContralBar.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Editor\Panels\CommandPalette.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\Shaders\vertex.glsl" />
@@ -412,6 +418,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Renderer\RendererResources.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Editor\Panels\ContralBar.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Editor\Panels\CommandPalette.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Editor\Panels\EntityViewer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

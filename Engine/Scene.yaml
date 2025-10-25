@@ -1,2 +1,84 @@
+Entities: []
 Name: Scene
-No. Entt: 2
+No. Entt: 0
+Resource:
+  -
+    Path: Assets/Textures/default_metallic.png
+    Type: 2
+    UUID: 0c9620d4-1dc4-47b9-8e31-bee2cc85b102
+  -
+    Path: Assets/Textures/default_diffuse.png
+    Type: 2
+    UUID: eadaea27-00b7-491f-9b9b-c0fbe1c38d84
+  -
+    Path: Assets/Textures/default_normal.png
+    Type: 2
+    UUID: e78e73ba-e27c-4515-ba4d-6b7ed8b9d177
+  -
+    Path: Assets/Icons/File.png
+    Type: 2
+    UUID: bb2fb384-f06d-4493-b720-3f9cfb4d26dc
+  -
+    Path: Assets/Textures/default_roughness.png
+    Type: 2
+    UUID: 66542c6d-2f9f-4e4a-a325-0e3d7d31dc5b
+  -
+    Path: Assets/Textures/default_ambient_occlusion.png
+    Type: 2
+    UUID: bab83716-5dec-47ba-bc54-151cf7d4c5cf
+  -
+    Path: Assets/Icons/plus.png
+    Type: 2
+    UUID: 62973bb9-3578-47c7-98d9-69221f18b99a
+  -
+    Path: Assets/Icons/duplicate.png
+    Type: 2
+    UUID: c5ae0509-9758-4e1d-8859-aa2c8d17473f
+  -
+    Path: Assets/Icons/x.png
+    Type: 2
+    UUID: b75f4984-7331-4caa-8f01-79d5f210e5f6
+  -
+    Path: Assets/Icons/Folder Line.png
+    Type: 2
+    UUID: 8ba344db-fd2e-4523-a875-07180e65089e
+  -
+    Path: Assets/Icons/Save.png
+    Type: 2
+    UUID: 29476d3c-8a32-423e-abe9-6b4cf73c577a
+  -
+    Path: Assets/Icons/Resource.png
+    Type: 2
+    UUID: d0a83174-3f6d-457b-a88f-7b44eba604e8
+  -
+    Path: Assets/Icons/Solid Mode.png
+    Type: 2
+    UUID: cf7363aa-7c9d-44d7-841b-799780c86841
+  -
+    Path: Assets/Icons/Render Mode.png
+    Type: 2
+    UUID: 1a818396-dbac-4548-a233-8607e65529e5
+  -
+    Path: Assets/Icons/Render Options.png
+    Type: 2
+    UUID: 27541f7c-1f81-4f77-8ea2-87f7e5b650a0
+  -
+    Path: Assets/Icons/Capture.png
+    Type: 2
+    UUID: 14ce412a-b26d-4468-b5b6-a6bed2b45365
+  -
+    Path: Assets/Icons/Entities.png
+    Type: 2
+    UUID: 3023b024-76be-4264-a08d-9d6c8b895ff1
+  -
+    Path: Assets/Icons/List Add.png
+    Type: 2
+    UUID: 1e9f9d0b-a10d-4a72-9122-055534404aa4
+  -
+    Path: Plane.mesh
+    Type: 0
+    UUID: 5eaecc94-3760-4941-ba72-e9cda4a54976
+  -
+    Path: Cube.mesh
+    Type: 0
+    UUID: b3a6f301-c894-4da1-9e62-7b5e4c96a4cc

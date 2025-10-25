@@ -12,6 +12,8 @@
 #include "Panels/SceneHierachy.h"
 #include "Panels/InspectorPanel.h"
 #include "Panels/ViewPort.h"
+#include "Panels/ContralBar.h"
+#include "Panels/CommandPalette.h"
 
 #include "../Renderer/Renderer.h"
 
@@ -48,13 +50,15 @@ namespace Iaonnis
 		void SetSelectionType(SelectionType type) { SelectionData.selectionType = type; }
 		void SetSelectionIndex(int index) { SelectionData.selectionIndex = index; }
 		int  GetSelectionIndex() { return SelectionData.selectionIndex; }
+
+		void Select(int selectionIndex, Entity* entt);
 		void Deselect();
 
 		void SetViewPortAction(ViewPortAction action) { viewPortAction = action;}
 		ViewPortAction GetViewPortAction() { return viewPortAction; }
 
 		void CreatePopUp(Event& event);
-		Scene* getScene() { return scene.get(); }
+		Scene* GetScene() { return scene.get(); }
 		void CreateScene();
 
 
@@ -66,6 +70,9 @@ namespace Iaonnis
 
 	private:
 		std::unique_ptr<MenuBar> menubar;
+		std::unique_ptr<ControlBar> controlBar;
+		std::unique_ptr<CommandPalette> cmdPalette;
+
 		std::vector<std::unique_ptr<EditorPanel>> panels;
 
 		struct

@@ -141,6 +141,8 @@
     <ClCompile Include="Core\Utils.cpp" />
     <ClCompile Include="Core\UUID.cpp" />
     <ClCompile Include="Editor\Editor.cpp" />
+    <ClCompile Include="Editor\Panels\CommandPalette.cpp" />
+    <ClCompile Include="Editor\Panels\ContralBar.cpp" />
     <ClCompile Include="Editor\Panels\FileDialog.cpp" />
     <ClCompile Include="Editor\Panels\GeneralWindow.cpp" />
     <ClCompile Include="Editor\Panels\InspectorPanel.cpp" />
@@ -189,6 +191,9 @@
     <ClInclude Include="Core\UUID.h" />
     <ClInclude Include="Editor\Editor.h" />
     <ClInclude Include="Editor\Panels\GeneralWindow.h" />
+    <ClInclude Include="Editor\Panels\ContralBar.h" />
+    <ClInclude Include="Editor\Panels\CommandPalette.h" />
+    <ClInclude Include="Editor\Panels\EntityViewer.h" />
     <ClInclude Include="Editor\Panels\InspectorPanel.h" />
     <ClInclude Include="Editor\Panels\Panels.h" />
     <ClInclude Include="Editor\Style.h" />

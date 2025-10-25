@@ -57,10 +57,18 @@ namespace Iaonnis
 	void ResourceCache::LoadDefaultIcons()
 	{
 		defaultIcons[IconType::Plus] = load<ImageTexture>("Assets/Icons/plus.png");
-		defaultIcons[IconType::New] = load<ImageTexture>("Assets/Icons/addNew.png");
+		defaultIcons[IconType::New] = load<ImageTexture>("Assets/Icons/File.png");
 		defaultIcons[IconType::Duplicate] = load<ImageTexture>("Assets/Icons/duplicate.png");
 		defaultIcons[IconType::Remove] = load<ImageTexture>("Assets/Icons/x.png");
-		defaultIcons[IconType::Open] = load<ImageTexture>("Assets/Icons/open.png");
+		defaultIcons[IconType::Open] = load<ImageTexture>("Assets/Icons/Folder Line.png");
+		defaultIcons[IconType::Save] = load<ImageTexture>("Assets/Icons/Save.png");
+		defaultIcons[IconType::Resources] = load<ImageTexture>("Assets/Icons/Resource.png");
+		defaultIcons[IconType::SolidMode] = load<ImageTexture>("Assets/Icons/Solid Mode.png");
+		defaultIcons[IconType::RenderMode] = load<ImageTexture>("Assets/Icons/Render Mode.png");
+		defaultIcons[IconType::RenderOption] = load<ImageTexture>("Assets/Icons/Render Options.png");
+		defaultIcons[IconType::Capture] = load<ImageTexture>("Assets/Icons/Capture.png");
+		defaultIcons[IconType::Entities] = load<ImageTexture>("Assets/Icons/Entities.png");
+		defaultIcons[IconType::ListAdd] = load<ImageTexture>("Assets/Icons/List Add.png");
 
 		return IAONNIS_LOG_DEBUG("Default Icons Loaded.");
 	}

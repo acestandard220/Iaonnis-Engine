@@ -33,7 +33,7 @@ namespace Iaonnis
 			ImGui::Separator();
 
 			int index = 0;
-			auto& entts = editor->getScene()->GetEntities();
+			auto& entts = editor->GetScene()->GetEntities();
 			for (auto& entt : entts)
 			{
 				int flag = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_SpanAvailWidth;
@@ -56,33 +56,7 @@ namespace Iaonnis
 
 					index++;
 					{
-						//if (entt.HasComponent<MeshFilterComponent>())
-						//{
-						//	auto meshFilter = entt.GetComponent<MeshFilterComponent>();
-						//	for (auto& name : meshFilter.names)
-						//	{
-						//		int childFlag = ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_SpanAvailWidth;
-						//		if (editor->GetSelectionIndex() != -1)
-						//		{
-						//			if (index == editor->GetSelectionIndex())
-						//				childFlag |= ImGuiTreeNodeFlags_Selected;
-						//		}
-
-						//		if (ImGui::TreeNodeEx((name + " ##Child" + UUIDFactory::uuidToString(entt.GetUUID())).c_str(),childFlag))
-						//		{
-
-						//			if (ImGui::IsItemClicked(ImGuiMouseButton_Left))
-						//			{
-						//				editor->SetSelectionIndex(index);
-						//				editor->SelectEntt(nullptr);
-						//				editor->SetSelectionType(SelectionType::SubEntity);
-						//			}
-						//			
-						//			ImGui::TreePop();
-						//		}
-						//		index++;
-						//	}
-						//}
+						
 					}
 					ImGui::TreePop();
 				}
@@ -113,31 +87,31 @@ namespace Iaonnis
 					std::string meshPath = FileDialog::OpenFileDialog();
 					if (!meshPath.empty())
 					{
-						std::shared_ptr<Mesh> newResource = editor->getScene()->getCache()->load<Mesh>(meshPath);
+						std::shared_ptr<Mesh> newResource = editor->GetScene()->getCache()->load<Mesh>(meshPath);
 						if (!newResource)
 						{
 							IAONNIS_LOG_ERROR("Failed to custom mesh.");
 						}
 						else {
-							editor->getScene()->addMesh(newResource->GetID());
+							editor->GetScene()->addMesh(newResource->GetID());
 						}
 					}
 				}
 				if (ImGui::MenuItem("Empty Entity"))
 				{
-					auto& newEntt = editor->getScene()->CreateEntity("Entity");
+					auto& newEntt = editor->GetScene()->CreateEntity("Entity");
 					editor->Deselect();
 				}
 				if (ImGui::MenuItem("Cube"))
 				{
-					auto& newEntt = editor->getScene()->AddCube("Cube");
+					auto& newEntt = editor->GetScene()->AddCube("Cube");
 					editor->Deselect();
 					editor->SelectEntt(&newEntt);
 					editor->SetSelectionType(SelectionType::Entity);
 				}
 				if (ImGui::MenuItem("Plane"))
 				{
-					auto& newEntt = editor->getScene()->AddPlane("Plane");
+					auto& newEntt = editor->GetScene()->AddPlane("Plane");
 					editor->Deselect();
 				}
 				ImGui::EndMenu();
@@ -147,17 +121,17 @@ namespace Iaonnis
 			{
 				if (ImGui::MenuItem("Directional Light"))
 				{
-					auto& newEntt = editor->getScene()->addDirectionalLight();
+					auto& newEntt = editor->GetScene()->addDirectionalLight();
 					editor->Deselect();
 				}
 				if (ImGui::MenuItem("Point Light"))
 				{
-					auto& newEntt = editor->getScene()->AddPointLight();
+					auto& newEntt = editor->GetScene()->AddPointLight();
 					editor->Deselect();
 				}
 				if (ImGui::MenuItem("Spot Light"))
 				{
-					auto& newEntt = editor->getScene()->addSpotLight();
+					auto& newEntt = editor->GetScene()->addSpotLight();
 					editor->Deselect();
 				}
 				ImGui::EndMenu();
@@ -188,7 +162,7 @@ namespace Iaonnis
 			if (ImGui::MenuItem("Remove"))
 			{
 				Entity* entity = editor->getSelectedEntity();
-				editor->getScene()->RemoveEntity(*entity);
+				editor->GetScene()->RemoveEntity(*entity);
 
 				editor->Deselect();
 			}

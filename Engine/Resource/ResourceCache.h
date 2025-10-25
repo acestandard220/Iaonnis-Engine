@@ -18,8 +18,12 @@ namespace Iaonnis
 		Duplicate,
 		Remove,
 		New,
-		Open
-
+		Open,
+		Save,
+		Resources,
+		SolidMode,RenderMode, RenderOption,
+		Entities, Capture,
+		ListAdd
 	};
 
 	struct ResourceCacheMeta

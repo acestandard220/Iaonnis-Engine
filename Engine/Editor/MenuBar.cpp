@@ -24,7 +24,7 @@ namespace Iaonnis
 			{
 				if (ImGui::MenuItem("New Scene", "Ctrl + N"))
 				{
-					Scene* scene = editor->getScene();
+					Scene* scene = editor->GetScene();
 					scene->Save(scene->getName() + ".yaml");
 					editor->CreateScene();
 				}
@@ -39,7 +39,7 @@ namespace Iaonnis
 					std::string returnPath = FileDialog::SaveFileDialog();
 					if (!returnPath.empty())
 					{
-						editor->getScene()->Save(returnPath);
+						editor->GetScene()->Save(returnPath);
 					}
 				}
 
@@ -71,7 +71,7 @@ namespace Iaonnis
 				ImGui::Separator();
 				if (ImGui::MenuItem("Sync"))
 				{
-					editor->getScene()->OnEntityRegisteryModified(); //Todo: Trigger somthing more global
+					editor->GetScene()->OnEntityRegisteryModified(); //Todo: Trigger somthing more global
 				}
 
 				ImGui::EndMenu();

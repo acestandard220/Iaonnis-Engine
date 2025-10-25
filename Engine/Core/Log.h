@@ -41,17 +41,17 @@ namespace Iaonnis {
 			std::string t;
 			IAONNIS_SYS_TIME(t);
 
-			std::string formattedMessage;
+			std::string formattLogLeveledMessage;
 
 #if __cplusplus >= 202002L
 			// ✅ C++20 and newer: use {} placeholders
 			if constexpr (sizeof...(args) > 0)
 			{
-				formattedMessage = std::vformat(fmt, std::make_format_args(std::forward<Args>(args)...));
+				formattLogLeveledMessage = std::vformat(fmt, std::make_format_args(std::forward<Args>(args)...));
 			}
 			else
 			{
-				formattedMessage = fmt;
+				formattLogLeveledMessage = fmt;
 			}
 #else
 			// ✅ Pre-C++20: fallback to printf-style formatting (%s, %d, etc.)
@@ -59,16 +59,16 @@ namespace Iaonnis {
 			{
 				char buffer[4096];
 				std::snprintf(buffer, sizeof(buffer), fmt.c_str(), std::forward<Args>(args)...);
-				formattedMessage = buffer;
+				formattLogLeveledMessage = buffer;
 			}
 			else
 			{
-				formattedMessage = fmt;
+				formattLogLeveledMessage = fmt;
 			}
 #endif
 
 			std::string logLevelString = kLogLevelStrings[(int)level].data();
-			std::string finalMessage = t + logLevelString + file + ":" + std::to_string(line) + " " + formattedMessage + "\n";
+			std::string finalMessage = t + logLevelString + file + ":" + std::to_string(line) + " " + formattLogLeveledMessage + "\n";
 
 			LogEvent logEvent(finalMessage.c_str());
 			EventBus::publish(logEvent);

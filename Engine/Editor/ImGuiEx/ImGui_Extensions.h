@@ -6,11 +6,16 @@ namespace Iaonnis {
 	namespace ImGuiEx
 	{
         static const ImVec2 tightButtonPadding = ImVec2(1.5f, 1.5f);
-        static bool Button(const char* label, ImVec2 size, ImDrawFlags flags = ImDrawFlags_RoundCornersNone)
-        {
-            static int _id = 1;
 
-            
+        static void VSeparator()
+        {
+            ImGui::SameLine();
+            ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
+            ImGui::SameLine();
+        }
+
+        static bool Button(const char* label, ImVec2 size, ImDrawFlags flags = ImDrawFlags_RoundCornersNone, ImVec2 padding = ImVec2(8, 4))
+        {
             ImDrawList* drawList = ImGui::GetWindowDrawList();
 
             ImVec2 pos = ImGui::GetCursorScreenPos();
@@ -26,23 +31,21 @@ namespace Iaonnis {
 
             drawList->AddRectFilled(pos, end, col, 7.0f, flags);
 
+            // Apply padding when positioning text
             ImVec2 textSize = ImGui::CalcTextSize(label);
             ImVec2 textPos = ImVec2(
-                pos.x + (size.x - textSize.x) * 0.5f,
-                pos.y + (size.y - textSize.y) * 0.5f
+                pos.x + padding.x + (size.x - textSize.x - padding.x * 2) * 0.5f,
+                pos.y + padding.y + (size.y - textSize.y - padding.y * 2) * 0.5f
             );
 
             drawList->AddText(textPos, ImGui::GetColorU32(ImGuiCol_Text), label);
-            
 
             return pressed;
         }
 
-        static bool ImageButton(const char* label, ImTextureID id, ImVec2 size, ImDrawFlags flags = ImDrawFlags_RoundCornersNone)
+
+        static bool ImageButton(const char* label, ImTextureID id, ImVec2 size, ImDrawFlags flags = ImDrawFlags_RoundCornersNone, ImVec2 padding = ImVec2(8, 4))
         {
-            static int _id = 1;
-
-
             ImDrawList* drawList = ImGui::GetWindowDrawList();
 
             ImVec2 pos = ImGui::GetCursorScreenPos();
@@ -58,16 +61,15 @@ namespace Iaonnis {
 
             drawList->AddRectFilled(pos, end, col, 7.0f, flags);
 
-            ImVec2 textSize = ImGui::CalcTextSize(label);
-            ImVec2 textPos = ImVec2(
-                pos.x + (size.x - textSize.x) * 0.5f,
-                pos.y + (size.y - textSize.y) * 0.5f
-            );
+            // Shrink the image area by padding
+            ImVec2 imgMin = ImVec2(pos.x + padding.x, pos.y + padding.y);
+            ImVec2 imgMax = ImVec2(end.x - padding.x, end.y - padding.y);
 
-            drawList->AddImage(id, pos, end, ImVec2(1.0, 0), ImVec2(0, 1.0));
+            drawList->AddImage(id, imgMin, imgMax, ImVec2(0, 1),ImVec2(1, 0));
 
             return pressed;
         }
+
 
         //Same as XYZ below
         static bool InputFloat3(const char* label, float* v, float resetValue = 0.0f,

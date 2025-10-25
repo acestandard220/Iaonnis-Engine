@@ -25,7 +25,7 @@ namespace Iaonnis
 					return;
 
 				ImGui::Begin(name.c_str(), &active);
-				auto cache = editor->getScene()->getCache();
+				auto cache = editor->GetScene()->getCache();
 				
 				std::vector<std::shared_ptr<ImageTexture>> imageTextureCache = cache->getByType<ImageTexture>(ResourceType::ImageTexture);
 				
