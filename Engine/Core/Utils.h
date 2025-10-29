@@ -8,11 +8,65 @@ namespace Iaonnis {
 		vec.erase(std::remove(vec.begin(), vec.end(), value), vec.end());
 	}
 
+
+	static std::string FormatBytes(size_t bytes)
+	{
+		static const double KB = 1024.0;
+		static const double MB = KB * 1024.0;
+		static const double GB = MB * 1024.0;
+
+		if (bytes == 0)
+			return "No Disk Write";
+
+		std::ostringstream oss;
+		oss << std::fixed << std::setprecision(2);
+
+		if (bytes < KB)
+			oss << bytes << " B";
+		else if (bytes < MB)
+			oss << (bytes / KB) << " KB";
+		else if (bytes < GB)
+			oss << (bytes / MB) << " MB";
+		else
+			oss << (bytes / GB) << " GB";
+
+		return oss.str();
+	}
+
+	/// <summary>
+	/// Get Epoch of past from now.
+	/// </summary>
+	/// <param name="storedTime"></param>
+	/// <returns></returns>
+	static std::string DecodeFileTime(uint64_t storedTime)
+	{
+		if (storedTime == 0)
+			return "Unknown";
+
+		std::time_t t = static_cast<std::time_t>(storedTime);
+		char buffer[32];
+		std::strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", std::localtime(&t));
+		return buffer;
+	}
+
+	static uint64_t GetEpoch(int days)
+	{
+		auto now = std::chrono::system_clock::now();
+
+		auto last_week = now - std::chrono::hours(24 * days);
+
+		auto epoch = std::chrono::duration_cast<std::chrono::seconds>(
+			last_week.time_since_epoch()).count();
+
+		return epoch;
+	}
+
 	namespace filespace
 	{
 		std::filesystem::path generateDuplicateFilename(std::filesystem::path path);
 
 		using filepath = std::filesystem::path;
+		using filelastwrite = std::filesystem::file_time_type;
 
 		/// <summary>
 		/// Removes directory or file
@@ -71,10 +125,20 @@ namespace Iaonnis {
 		std::string getFileSize(filepath path);
 
 		/// <summary>
+		/// Retrieves the size of the file at the specified path in bytes.
+		/// </summary>
+		/// <param name="path">The filesystem path to the file whose size will be retrieved.</param>
+		/// <returns>The size of the file in bytes.</returns>
+		size_t getByteSize(filepath path);
+
+		/// <summary>
 		/// Checks if the specified file or directory exists at the given path.
 		/// </summary>
 		/// <param name="path">The path to check for existence.</param>
 		/// <returns>True if the file or directory exists, false otherwise.</returns>
 		bool exists(filepath path);
+
+
+		uint64_t GetFileWriteTime(const filepath& filePath);
 	}
 }

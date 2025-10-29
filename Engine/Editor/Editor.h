@@ -14,6 +14,7 @@
 #include "Panels/ViewPort.h"
 #include "Panels/ContralBar.h"
 #include "Panels/CommandPalette.h"
+#include "Panels/ResourceViewer.h"
 
 #include "../Renderer/Renderer.h"
 
@@ -63,6 +64,13 @@ namespace Iaonnis
 
 
 		uint32_t renderOut; //temp
+
+		//Signals
+		void ToggleSceneHierarchy() { sceneHierarchy->ToggleActive(); }
+		bool& GetSceneHierarchyActive() { return sceneHierarchy->Active(); }
+		bool& GetResourceViewerActive() { return resourceViewer->Active(); }
+
+
 	private:
 		void DebugWindow(Renderer3D::RendererStatistics stats);
 
@@ -72,6 +80,8 @@ namespace Iaonnis
 		std::unique_ptr<MenuBar> menubar;
 		std::unique_ptr<ControlBar> controlBar;
 		std::unique_ptr<CommandPalette> cmdPalette;
+		std::unique_ptr<SceneHierachy> sceneHierarchy;
+		std::unique_ptr<ResourceViewer> resourceViewer;
 
 		std::vector<std::unique_ptr<EditorPanel>> panels;
 

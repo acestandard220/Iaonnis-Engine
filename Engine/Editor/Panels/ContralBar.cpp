@@ -4,11 +4,21 @@
 
 namespace Iaonnis
 {
+	bool temp = false;
+
 	ControlBar::ControlBar(Editor* editr)
 		:EditorPanel(editr)
 	{
 		name = "Control Panel";
 		active = true;
+
+		auto solidModeIcon = ResourceCache::GetIcon(IconType::SolidMode)->getTextureHandle().m_ID;
+		auto renderModeIcon = ResourceCache::GetIcon(IconType::RenderMode)->getTextureHandle().m_ID;
+
+		renderToggleState = std::make_unique<ImGuiEx::ToggleState2>(solidModeIcon, renderModeIcon, ImDrawFlags_RoundCornersLeft, ImDrawFlags_RoundCornersRight);
+		sceneToggleGroup  = std::make_unique<ImGuiEx::ToggleGroup>("##SceneToggles", 2);
+
+		toggleStates.resize(9, false);
 	}
 
 	void Iaonnis::ControlBar::OnUpdate(float dt)
@@ -29,16 +39,7 @@ namespace Iaonnis
 
 		ImGui::Begin("##ToolControl", nullptr, fl);
 
-		if (ImGui::IsWindowHovered())
-		{
-			auto windowRounding = ImGui::GetStyle().WindowRounding;
-			ImGuiWindow* window = ImGui::GetCurrentWindow();
-			ImDrawList* draw_list = ImGui::GetWindowDrawList();
-			draw_list->Flags &= ~ImDrawListFlags_AntiAliasedLines;
-			ImVec2 min = window->Pos;
-			ImVec2 max = ImVec2(min.x + window->Size.x, min.y + window->Size.y);
-			draw_list->AddRect(min, max, IM_COL32(255, 255, 255, 90),windowRounding, ImDrawFlags_RoundCornersAll, 2.0f);
-		}
+		ImGuiEx::OnWindowHoverHightlight();
 
 		ImVec2 buttonSize = ImVec2(40, 35);
 
@@ -47,7 +48,7 @@ namespace Iaonnis
 		//Projec Tab
 		{
 			if (ImGuiEx::ImageButton("##NewButton", ResourceCache::GetIcon(IconType::New)->getTextureHandle().m_ID,
-				buttonSize, ImDrawFlags_RoundCornersLeft))
+				buttonSize, 7.0, ImDrawFlags_RoundCornersLeft))
 			{
 				Scene* scene = editor->GetScene();
 				scene->Save(scene->getName() + ".yaml");
@@ -56,7 +57,7 @@ namespace Iaonnis
 
 			ImGui::SameLine();
 			if (ImGuiEx::ImageButton("##OpenButton", ResourceCache::GetIcon(IconType::Open)->getTextureHandle().m_ID,
-				buttonSize))
+				buttonSize,7.0))
 			{
 
 
@@ -64,7 +65,7 @@ namespace Iaonnis
 
 			ImGui::SameLine();
 			if (ImGuiEx::ImageButton("##SaveButton", ResourceCache::GetIcon(IconType::Save)->getTextureHandle().m_ID,
-				buttonSize, ImDrawFlags_RoundCornersRight))
+				buttonSize,7.0, ImDrawFlags_RoundCornersRight))
 			{
 				std::string returnPath = FileDialog::SaveFileDialog();
 				if (!returnPath.empty())
@@ -78,41 +79,28 @@ namespace Iaonnis
 
 		//Scene Managerment
 		{
-			if (ImGuiEx::ImageButton("##EntityViewerButton", ResourceCache::GetIcon(IconType::Entities)->getTextureHandle().m_ID,
-				buttonSize, ImDrawFlags_RoundCornersLeft))
-			{
-			}
-			ImGui::SameLine();
-			if (ImGuiEx::ImageButton("##ResourceViewerButton", ResourceCache::GetIcon(IconType::Resources)->getTextureHandle().m_ID,
-				buttonSize, ImDrawFlags_RoundCornersRight))
-			{
+			auto entitiesIcon = ResourceCache::GetIcon(IconType::Entities)->getTextureHandle().m_ID;
+			auto resourcesIcon = ResourceCache::GetIcon(IconType::Resources)->getTextureHandle().m_ID;
 
-			}
+			sceneToggleGroup->OnRender(0, "##EntityViewerToggle", &editor->GetSceneHierarchyActive(), entitiesIcon, buttonSize, 7.0f, ImDrawFlags_RoundCornersLeft);
+			ImGui::SameLine();
+			sceneToggleGroup->OnRender(0, "##ResourceViewerToggle", &editor->GetResourceViewerActive(), resourcesIcon, buttonSize, 7.0f, ImDrawFlags_RoundCornersRight);
 		}
 
 		ImGuiEx::VSeparator();
 
 		ImGuiEx::ImageButton("##CaptureButton", ResourceCache::GetIcon(IconType::Capture)->getTextureHandle().m_ID,
-			buttonSize, ImDrawFlags_RoundCornersAll);
+			buttonSize, 7.0, ImDrawFlags_RoundCornersAll);
 
 		ImGuiEx::VSeparator();
 
 		//Modes
 		{
-			if (ImGuiEx::ImageButton("##SolidModeButton", ResourceCache::GetIcon(IconType::SolidMode)->getTextureHandle().m_ID,
-				buttonSize, ImDrawFlags_RoundCornersLeft))
-			{
+			renderToggleState->OnRender("##RenderStateToggle", buttonSize);
 
-			}
-			ImGui::SameLine();
-			if (ImGuiEx::ImageButton("##RenderModeButton", ResourceCache::GetIcon(IconType::RenderMode)->getTextureHandle().m_ID,
-				buttonSize))
-			{
-
-			}
 			ImGui::SameLine();
 			if (ImGuiEx::ImageButton("##RenderOptionsButton", ResourceCache::GetIcon(IconType::RenderOption)->getTextureHandle().m_ID,
-				buttonSize, ImDrawFlags_RoundCornersRight))
+				buttonSize, 7.0, ImDrawFlags_RoundCornersAll))
 			{
 
 			}
@@ -164,5 +152,19 @@ namespace Iaonnis
 			}
 			ImGui::EndPopup();
 		}
+	}
+
+	bool ControlBar::Toggle(int index)
+	{
+		if (currentToggle >= 0)
+		{
+			toggleStates[currentToggle] = false;
+		}
+
+		toggleStates[index] = toggleStates[index] ? false : true;
+		currentToggle = toggleStates[index] ? -1 : index;
+
+
+		return toggleStates[index];
 	}
 }

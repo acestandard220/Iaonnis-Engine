@@ -3,16 +3,19 @@
 
 namespace Iaonnis
 {
+	Editor* gEditor = nullptr;
+
 	CommandPalette::CommandPalette(Editor* editor)
 		:EditorPanel(editor)
 	{
-
+		gEditor = editor;
 	}
 
 	inline void Iaonnis::CommandPalette::OnUpdate(float dt)
 	{
 		if (ImGui::IsKeyPressed(ImGuiKey_P) && ImGui::GetIO().KeyCtrl)
 			showCommandPalette = !showCommandPalette;
+
 
 		if (showCommandPalette)
 		{
@@ -25,13 +28,17 @@ namespace Iaonnis
 			if (ImGui::Begin("Command Palette", &showCommandPalette, commandPaletteFlags))
 			{
 				auto inputTextWidth = ImGui::GetContentRegionAvail().x - 10.0f;
+				ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 5.0f);
 				ImGui::SetNextItemWidth(inputTextWidth);
-				if (ImGui::InputTextWithHint("##CommandInput", "Type a command...", commandPaletteBuffer, 127,
+
+				ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 0.0f);
+				if (ImGui::InputTextWithHint("##CommandInput", "Type a command... Enter to Execute... Ctrl + P to hide...", commandPaletteBuffer, 127,
 					ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_EscapeClearsAll))
 				{
 					Command cmd(commandPaletteBuffer);
 					CommandSystem::Execute(cmd);
 				}
+				ImGui::PopStyleVar();
 
 				ImGui::End();
 			}
@@ -71,8 +78,37 @@ namespace Iaonnis
 					}
 				},
 				{
-					"save_scene",[](const std::vector<std::string>& args) {
+					"add_cube",[](const std::vector<std::string>& args) {
+						if (args.empty())
+						{
+							gEditor->GetScene()->AddCube("Cube");
+							return;
+						}
 
+						try {
+							int inst = std::stoi(args[0]);
+							for (int i = 1; i <= inst; i++)
+							{
+								std::string name = "Cube " + std::to_string(i);
+								gEditor->GetScene()->AddCube(name);
+							}
+						}
+						catch (const std::exception& e)
+						{
+							std::cerr << "Invalid argument provided\n";
+						}
+					}
+				},
+				{
+					"add_light",[](const std::vector<std::string>& args) {
+						if (args.empty() || args[0] == "Directional")
+						{
+							gEditor->GetScene()->addDirectionalLight();
+						}
+						else if(args[0] == "Point")
+							gEditor->GetScene()->AddPointLight();
+						else if(args[0] == "Spot")
+							gEditor->GetScene()->addSpotLight();
 					}
 				}
 	};

@@ -119,9 +119,30 @@ namespace Iaonnis {
 		return ss.str();
 	}
 
+	size_t filespace::getByteSize(filepath path)
+	{
+		if(!std::filesystem::exists(path))
+			return 0;
+
+		std::filesystem::directory_entry dir(path);
+		auto fileSize = dir.file_size();
+		return fileSize;
+	}
+
 	bool filespace::exists(filepath path)
 	{
 		return std::filesystem::exists(path);
 	}
 
+	uint64_t filespace::GetFileWriteTime(const filepath& filePath)
+	{
+		if (!std::filesystem::exists(filePath))
+			return 0; 
+
+		auto ftime = std::filesystem::last_write_time(filePath);
+		auto systemTime = std::chrono::time_point_cast<std::chrono::system_clock::duration>(
+			ftime - decltype(ftime)::clock::now() + std::chrono::system_clock::now()
+		);
+		return static_cast<uint64_t>(std::chrono::system_clock::to_time_t(systemTime));
+	}
 }

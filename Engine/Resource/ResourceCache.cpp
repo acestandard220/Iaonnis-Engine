@@ -69,7 +69,14 @@ namespace Iaonnis
 		defaultIcons[IconType::Capture] = load<ImageTexture>("Assets/Icons/Capture.png");
 		defaultIcons[IconType::Entities] = load<ImageTexture>("Assets/Icons/Entities.png");
 		defaultIcons[IconType::ListAdd] = load<ImageTexture>("Assets/Icons/List Add.png");
+		defaultIcons[IconType::ListLayout] = load<ImageTexture>("Assets/Icons/List Layout.png");
+		defaultIcons[IconType::GridLayout] = load<ImageTexture>("Assets/Icons/Grid Layout.png");
+		defaultIcons[IconType::Settings] = load<ImageTexture>("Assets/Icons/Settings.png");
+		defaultIcons[IconType::Sync] = load<ImageTexture>("Assets/Icons/sync.png");
+		defaultIcons[IconType::Edit] = load<ImageTexture>("Assets/Icons/Edit.png");
+		defaultIcons[IconType::Info] = load<ImageTexture>("Assets/Icons/info.png");
 
+		defaultIcons[IconType::Unknown] = load<ImageTexture>("Assets/Icons/Unknown.png");
 		return IAONNIS_LOG_DEBUG("Default Icons Loaded.");
 	}
 

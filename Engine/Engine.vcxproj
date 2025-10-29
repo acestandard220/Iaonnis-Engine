@@ -152,6 +152,7 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Editor\MenuBar.cpp" />
     <ClCompile Include="Renderer\Renderer.cpp" />
+    <ClCompile Include="Editor\Panels\ResourceViewer.cpp" />
     <ClCompile Include="Resource\Environment.cpp" />
     <ClCompile Include="Resource\ImageTexture.cpp" />
     <ClCompile Include="Resource\Material.cpp" />
@@ -204,6 +205,7 @@
     <ClInclude Include="Editor\MenuBar.h" />
     <ClInclude Include="Renderer\Renderer.h" />
     <ClInclude Include="Renderer\RendererResources.h" />
+    <ClInclude Include="Editor\Panels\ResourceViewer.h" />
     <ClInclude Include="Resource\Environment.h" />
     <ClInclude Include="Resource\ImageTexture.h" />
     <ClInclude Include="Resource\Material.h" />

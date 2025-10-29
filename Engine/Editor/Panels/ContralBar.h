@@ -18,9 +18,14 @@ namespace Iaonnis
 
 	private:
 		void OnProjectTab();
+		bool Toggle(int index);
 
 	private:
-		
+		std::unique_ptr<ImGuiEx::ToggleState2> renderToggleState;
+        std::unique_ptr<ImGuiEx::ToggleGroup> sceneToggleGroup;
+
+		int currentToggle = -1;
+		std::vector<bool> toggleStates;
 
 	};
 }

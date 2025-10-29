@@ -12,6 +12,8 @@ namespace Iaonnis
 {
 	enum class IconType
 	{
+		IconHeader,
+
 		Folder,
 		File,
 		Plus,
@@ -23,7 +25,13 @@ namespace Iaonnis
 		Resources,
 		SolidMode,RenderMode, RenderOption,
 		Entities, Capture,
-		ListAdd
+		ListAdd,
+		ListLayout,GridLayout,
+		Settings,
+		Sync,
+		Edit,Info,
+
+		Unknown
 	};
 
 	struct ResourceCacheMeta
@@ -81,8 +89,6 @@ namespace Iaonnis
 					return std::static_pointer_cast<T>(resource);
 				}
 			}
-
-			//IAONNIS_LOG_ERROR("Failed to find resource. (Path = %s)", path.string().c_str());
 			return nullptr;
 		}
 
@@ -96,17 +102,18 @@ namespace Iaonnis
 					return std::static_pointer_cast<T>(resource);
 			}
 
-			//IAONNIS_LOG_ERROR("Failed to find resource. (Name = %s)", name.c_str());
 			return nullptr;
 		}
 
 		template<class T>
 		std::vector<std::shared_ptr<T>> getByType(ResourceType type)
 		{
+			bool all = (type == ResourceType::Unknown);
+
 			std::vector<std::shared_ptr<T>> res;
 			for (auto& [id, resource] : resources)
 			{
-				if (resource->getType() == type)
+				if (all || resource->getType() == type )
 					res.push_back(std::static_pointer_cast<T>(resource));
 			}
 
@@ -241,6 +248,8 @@ namespace Iaonnis
 				resource->setUUID(id);
 				resource->setPath(path);
 				resource->setName(filespace::getStem(path));
+				resource->setByteSize(filespace::getByteSize(path));
+				resource->setLastWrite(filespace::GetFileWriteTime(path));
 
 				resources[id] = resource;
 			}

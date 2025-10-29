@@ -8,7 +8,7 @@ namespace Iaonnis
 		:EditorPanel(editor)
 	{
 		name = "Hierarchy##" + std::to_string(_id++);
-		active = true;
+		active = false;
 	}
 
 	SceneHierachy::~SceneHierachy()
@@ -20,7 +20,10 @@ namespace Iaonnis
 	{
 		SCOPE_TIMER(__FUNCTION__);
 
-		if(ImGui::Begin(name.c_str(), &active, ImGuiWindowFlags_HorizontalScrollbar))
+		if (!active)
+			return;
+
+		if (ImGui::Begin(name.c_str(), &active, ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoDocking));
 		{
 			auto plusIcon = ResourceCache::GetIcon(IconType::Plus);
 			ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 3.0f);

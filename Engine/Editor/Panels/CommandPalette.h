@@ -57,7 +57,6 @@ namespace Iaonnis
 	{
 	public:
 		static std::unordered_map<std::string, std::function<void(const std::vector<std::string>&)>> cmdRegistry;
-
 		inline static bool Execute(const Command& cmd);
 	};
 

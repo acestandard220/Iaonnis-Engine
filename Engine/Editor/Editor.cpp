@@ -128,6 +128,8 @@ namespace Iaonnis
         menubar->OnUpdate();
         controlBar->OnUpdate(dt);
         cmdPalette->OnUpdate(dt);
+        sceneHierarchy->OnUpdate(dt);
+        resourceViewer->OnUpdate(dt);
 
         std::vector<std::string> entitiesFake{
             "Entity1",
@@ -138,85 +140,20 @@ namespace Iaonnis
         };
 
         {
-            auto& entts = GetScene()->GetEntities();
+            ImGui::Begin("sijdsd");
 
-            ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(1, 1, 1, 0.0f));
-            ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
+            ImGui::Text("sljf");
 
-            const ImGuiWindowFlags flags = ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoDecoration;
-            ImGui::Begin("##EntityViewer", nullptr, flags);
+            ImGui::TextWrapped("SDFASDFASDFASDFASDFASDFASdf");
+            ImGui::BeginChild("ChildWindow",ImVec2(0,0), ImGuiChildFlags_ResizeX | ImGuiChildFlags_AutoResizeY);
 
-            ImDrawList* draw_list = ImGui::GetWindowDrawList();
-            ImVec2 winPos = ImGui::GetCursorScreenPos();
 
-            float yArea = ImGui::GetContentRegionAvail().y;
-            float xArea = ImGui::GetContentRegionAvail().x;
-
-            float rowHeight = 22.0f;
-            int nRows = (int)(yArea / rowHeight);
-            float windowRounding = ImGui::GetStyle().WindowRounding; 
-            float frameRounding = ImGui::GetStyle().FrameRounding;
-            
-            static char buffer[64];
-
-            float cursorPos = ImGui::GetCursorPosX();
-            float searchAreaWidth = xArea/1.5f;
-            float searchAreaPadding = (xArea - searchAreaWidth) / 2;
-            ImGui::SetCursorPosX(cursorPos + searchAreaPadding);
-           
-            ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, frameRounding);
-            bool searched = ImGui::InputTextWithHint("##SearchEntitiesInput", "Search Entities", buffer, 64,
-                ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_EscapeClearsAll);
-            ImGui::PopStyleVar();
-
-            ImVec2 rMin = ImGui::GetCursorScreenPos();
-            ImVec2 rMax = ImVec2(rMin.x + ImGui::GetContentRegionAvail().x, rMin.y + rowHeight);
-
-            ImU32 color = IM_COL32(45, 45, 45, 255);
-            ImU32 bgColor = ImGui::ColorConvertFloat4ToU32(ImGui::GetStyle().Colors[ImGuiCol_WindowBg]);
-            
-            draw_list->AddRectFilled(rMin, rMax, color, windowRounding, ImDrawFlags_RoundCornersBottom);
-
-           if (ImGui::BeginTable("MyTable", 1,  ImGuiTableFlags_RowBg))
-            {
-                for (int row = 0; row < nRows; row++)
-                {                    
-                    ImGui::TableNextRow(0, rowHeight);
-
-                    ImVec2 rowMin = ImGui::GetCursorScreenPos();
-                    ImVec2 rowMax = ImVec2(rowMin.x + ImGui::GetContentRegionAvail().x, rowMin.y + rowHeight);
-
-                    int cornerFlags = 0;
-
-                    if (row == nRows - 1)
-                        cornerFlags = ImDrawFlags_RoundCornersBottom;
-
-                    if (row % 2 == 0)
-                    {
-                        draw_list->AddRectFilled(rowMin, rowMax, color, windowRounding, cornerFlags);
-                    }
-
-                    ImGui::TableNextColumn();
-                    bool selected = (GetSelectionIndex() == row);
-                     
-                    if (row < entts.size())
-                    {
-                        if (ImGui::Selectable(entts[row].GetTag().c_str(), selected))
-                        {
-                            Select(row,&entts[row]);
-                        }
-                    }
-                }
-                ImGui::EndTable();
-            }
-
-            
+            ImGui::EndChild();
 
             ImGui::End();
-
-            ImGui::PopStyleVar();
-            ImGui::PopStyleColor();
         }
+
+       
 
 
 
@@ -321,6 +258,8 @@ namespace Iaonnis
         menubar = std::make_unique<MenuBar>(this);
         controlBar = std::make_unique<ControlBar>(this);
         cmdPalette = std::make_unique<CommandPalette>(this);
+        sceneHierarchy = std::make_unique<SceneHierachy>(this);
+        resourceViewer = std::make_unique<ResourceViewer>(this);
 
         panels.emplace_back(std::make_unique<SceneHierachy>(this));
         panels.emplace_back(std::make_unique<Inspector>(this));

@@ -22,6 +22,11 @@ namespace Iaonnis
 		return type;
 	}
 
+	std::string Resource::GetExtension()
+	{
+		return filespace::getExtension(path);
+	}
+
 	std::string Resource::getTypeString(ResourceType type)
 	{
 		switch (type)

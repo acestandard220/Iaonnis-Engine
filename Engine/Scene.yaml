@@ -1,84 +1,180 @@
-Entities: []
+Entities:
+  -
+    Active: true
+    MeshFilter:
+      Material:
+        7f1b7797-8cc5-41dc-8f1e-747ce57049d4:
+          - 0
+      Names:
+        - SubCube
+      UUID: 67c36d3b-1809-4f78-9555-ac46320faea7
+    Tag: Cube A
+    Transform:
+      -
+        - 0.0
+        - 0.0
+        - 0.0
+      -
+        - 0.0
+        - 0.0
+        - 0.0
+      -
+        - 1.0
+        - 1.0
+        - 1.0
+    UUID: d24770d7-a6d5-4c45-8e4b-c5de3c170ddc
+  -
+    Active: true
+    MeshFilter:
+      Material:
+        7f1b7797-8cc5-41dc-8f1e-747ce57049d4:
+          - 0
+      Names:
+        - SubCube
+      UUID: 67c36d3b-1809-4f78-9555-ac46320faea7
+    Tag: Cube B
+    Transform:
+      -
+        - 0.0
+        - 0.0
+        - 0.0
+      -
+        - 0.0
+        - 0.0
+        - 0.0
+      -
+        - 1.0
+        - 1.0
+        - 1.0
+    UUID: a356e8c4-d284-4c9f-b51a-0fd23de3e291
+  -
+    Active: true
+    MeshFilter:
+      Material:
+        7f1b7797-8cc5-41dc-8f1e-747ce57049d4:
+          - 0
+      Names:
+        - SubCube
+      UUID: 67c36d3b-1809-4f78-9555-ac46320faea7
+    Tag: Cube C
+    Transform:
+      -
+        - 0.0
+        - 0.0
+        - 0.0
+      -
+        - 0.0
+        - 0.0
+        - 0.0
+      -
+        - 1.0
+        - 1.0
+        - 1.0
+    UUID: a4b89779-a31b-455f-b7b4-7139dca7e79a
+  -
+    Active: true
+    MeshFilter:
+      Material:
+        7f1b7797-8cc5-41dc-8f1e-747ce57049d4:
+          - 0
+      Names:
+        - SubCube
+      UUID: 67c36d3b-1809-4f78-9555-ac46320faea7
+    Tag: Cube D
+    Transform:
+      -
+        - 0.0
+        - 0.0
+        - 0.0
+      -
+        - 0.0
+        - 0.0
+        - 0.0
+      -
+        - 1.0
+        - 1.0
+        - 1.0
+    UUID: 178a07cd-fc1b-425b-bddb-f7a1f56f37cd
 Name: Scene
-No. Entt: 0
+No. Entt: 4
 Resource:
-  -
-    Path: Assets/Textures/default_metallic.png
-    Type: 2
-    UUID: 0c9620d4-1dc4-47b9-8e31-bee2cc85b102
-  -
-    Path: Assets/Textures/default_diffuse.png
-    Type: 2
-    UUID: eadaea27-00b7-491f-9b9b-c0fbe1c38d84
-  -
-    Path: Assets/Textures/default_normal.png
-    Type: 2
-    UUID: e78e73ba-e27c-4515-ba4d-6b7ed8b9d177
-  -
-    Path: Assets/Icons/File.png
-    Type: 2
-    UUID: bb2fb384-f06d-4493-b720-3f9cfb4d26dc
-  -
-    Path: Assets/Textures/default_roughness.png
-    Type: 2
-    UUID: 66542c6d-2f9f-4e4a-a325-0e3d7d31dc5b
-  -
-    Path: Assets/Textures/default_ambient_occlusion.png
-    Type: 2
-    UUID: bab83716-5dec-47ba-bc54-151cf7d4c5cf
-  -
-    Path: Assets/Icons/plus.png
-    Type: 2
-    UUID: 62973bb9-3578-47c7-98d9-69221f18b99a
-  -
-    Path: Assets/Icons/duplicate.png
-    Type: 2
-    UUID: c5ae0509-9758-4e1d-8859-aa2c8d17473f
   -
     Path: Assets/Icons/x.png
     Type: 2
-    UUID: b75f4984-7331-4caa-8f01-79d5f210e5f6
+    UUID: 130b0a60-6188-4f4e-b863-0abd5b2e4ca8
+  -
+    Path: Assets/Textures/default_normal.png
+    Type: 2
+    UUID: 20dc68b4-56f7-4d1a-8cc9-062b61ef6768
+  -
+    Path: Assets/Icons/duplicate.png
+    Type: 2
+    UUID: b4dac4d2-f23e-47d3-a093-22f2ace1c2bc
+  -
+    Path: Assets/Textures/default_metallic.png
+    Type: 2
+    UUID: 44da020c-6fd6-40b8-a489-a0b4aa0bc2bb
+  -
+    Path: Assets/Textures/default_diffuse.png
+    Type: 2
+    UUID: d8a499d6-4469-4b26-88e1-bff1e0c77631
+  -
+    Path: Assets/Textures/default_roughness.png
+    Type: 2
+    UUID: 6c78fb47-cdad-4106-a2e4-196f8d4fbe34
+  -
+    Path: Assets/Icons/plus.png
+    Type: 2
+    UUID: c4635ff4-f117-439d-83fb-af6ed4f59a45
+  -
+    Path: Assets/Textures/default_ambient_occlusion.png
+    Type: 2
+    UUID: c6a659b5-60cd-49ec-82c1-bf80ea074c4f
+  -
+    Path: Assets/Icons/File.png
+    Type: 2
+    UUID: 53f82e56-3cdd-48c9-946f-0909fa71074d
   -
     Path: Assets/Icons/Folder Line.png
     Type: 2
-    UUID: 8ba344db-fd2e-4523-a875-07180e65089e
+    UUID: 90443030-0fbe-4e54-8b8e-01f52d5bdf33
   -
     Path: Assets/Icons/Save.png
     Type: 2
-    UUID: 29476d3c-8a32-423e-abe9-6b4cf73c577a
+    UUID: 5f53e271-6071-4fad-86b3-363ca5d30a5d
   -
     Path: Assets/Icons/Resource.png
     Type: 2
-    UUID: d0a83174-3f6d-457b-a88f-7b44eba604e8
+    UUID: d6be6b3b-863b-444a-b2fb-846f497cb5ed
   -
     Path: Assets/Icons/Solid Mode.png
     Type: 2
-    UUID: cf7363aa-7c9d-44d7-841b-799780c86841
+    UUID: 7b8057b8-1ea1-475b-8415-8de6d906f194
   -
     Path: Assets/Icons/Render Mode.png
     Type: 2
-    UUID: 1a818396-dbac-4548-a233-8607e65529e5
+    UUID: 98a2643e-6ef8-473f-af08-78ee44911d32
   -
     Path: Assets/Icons/Render Options.png
     Type: 2
-    UUID: 27541f7c-1f81-4f77-8ea2-87f7e5b650a0
+    UUID: fb219936-1f0c-45cd-b02f-0a69dbd43d2a
   -
     Path: Assets/Icons/Capture.png
     Type: 2
-    UUID: 14ce412a-b26d-4468-b5b6-a6bed2b45365
+    UUID: 47620f06-e122-4dfb-b4c7-7188f0de25fb
   -
     Path: Assets/Icons/Entities.png
     Type: 2
-    UUID: 3023b024-76be-4264-a08d-9d6c8b895ff1
+    UUID: daaa0c64-224e-4f05-82f9-30c432e89496
   -
     Path: Assets/Icons/List Add.png
     Type: 2
-    UUID: 1e9f9d0b-a10d-4a72-9122-055534404aa4
-  -
-    Path: Plane.mesh
-    Type: 0
-    UUID: 5eaecc94-3760-4941-ba72-e9cda4a54976
+    UUID: 29da651d-6901-4fbe-8e48-bada4eb44ed7
   -
     Path: Cube.mesh
     Type: 0
-    UUID: b3a6f301-c894-4da1-9e62-7b5e4c96a4cc
+    UUID: 67c36d3b-1809-4f78-9555-ac46320faea7
+  -
+    Path: Plane.mesh
+    Type: 0
+    UUID: e1696a35-d046-49db-9424-1aa6997b6ee4

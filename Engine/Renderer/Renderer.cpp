@@ -842,8 +842,6 @@ namespace Iaonnis {
 			LockFence(rendererData.gSync);
 
 			LightPass(scene);
-			//EnvironmentPass(scene);
-
 		}
 
 		uint32_t GetRenderOutput()

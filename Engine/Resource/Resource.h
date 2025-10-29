@@ -6,11 +6,11 @@ namespace Iaonnis
 {
 	enum class ResourceType
 	{
-		Mesh,
-		Material,
+		Unknown ,//Can be used to return all resources
 		ImageTexture,
+		Material,
+		Mesh,
 
-		Unknown
 	};
 
 	class ResourceCache;
@@ -26,10 +26,16 @@ namespace Iaonnis
 		UUID& GetID(){ return id; }
 		const UUID& GetID()const;
 		const std::string& getName()const;
+		std::string& GetName() { return name; }
 		const filespace::filepath& getPath()const;
 		ResourceType getType()const;
 
 		int GetRefCount()const { return refCount; }
+
+		size_t GetByteSize()const { return byteSize; }
+		uint64_t GetLastWrite()const { return lastWrite; }
+
+		std::string GetExtension();
 
 		static std::string getTypeString(ResourceType type);
 		
@@ -39,6 +45,8 @@ namespace Iaonnis
 		void setUUID(UUID i) { id = i; }
 		void setName(const std::string& nme) { name = nme; }
 		void setPath(filespace::filepath p) { path = p; }
+		void setByteSize(size_t size) { byteSize = size; }
+		void setLastWrite(uint64_t modTime) { lastWrite = modTime; }
 
 		void use(int count = 1) { refCount += count; }
 		void unuse(int count = 1);
@@ -48,6 +56,9 @@ namespace Iaonnis
 		std::string name;
 		filespace::filepath path;
 		ResourceType type;
+
+		size_t byteSize;
+		uint64_t lastWrite;
 
 		int refCount = 0;
 	};

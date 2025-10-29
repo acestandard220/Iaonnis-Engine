@@ -10,6 +10,9 @@ namespace Iaonnis
 			EditorPanel(Editor* editor);
 			virtual ~EditorPanel();
 			
+			bool& Active() { return active; }
+			virtual void ToggleActive() { active = active ? false : true; }
+
 			virtual std::string GetName() { return name; }
 
 			virtual void OnUpdate(float dt) = 0;

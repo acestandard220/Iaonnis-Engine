@@ -132,6 +132,9 @@
     <ClCompile Include="Editor\Panels\CommandPalette.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Editor\Panels\ResourceViewer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\Shaders\vertex.glsl" />
@@ -427,6 +430,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Editor\Panels\EntityViewer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Editor\Panels\ResourceViewer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
