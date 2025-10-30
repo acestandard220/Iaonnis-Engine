@@ -123,7 +123,6 @@ namespace Iaonnis
 
         {
 
-
         }
 
         ImGui::End();
@@ -385,9 +384,12 @@ namespace Iaonnis
                     }
                     if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(0))
                     {
+                        ResetFilters();
+
                         displayType = ResourceType::ImageTexture;
                         syncResources = true;
                         currentResource = res.get();
+
                     }
                 }
 
@@ -398,9 +400,10 @@ namespace Iaonnis
             {
                 ImGui::BeginTable("DetailsTable", 2, ImGuiTableFlags_SizingStretchSame);
 
-                ImGui::TableSetupColumn("Label", ImGuiTableColumnFlags_WidthStretch, 0.3f); // 30%
-                ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthStretch, 0.7f); // 70%
+                ImGui::TableSetupColumn("Label", ImGuiTableColumnFlags_WidthStretch, detailArea.tableRatio.x); // 30%
+                ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthStretch, detailArea.tableRatio.y); // 70%
                 ImGui::TableNextRow();
+
 
                 ImGui::TableSetColumnIndex(0); ImGui::Text("Geometry");
                 ImGui::TableSetColumnIndex(1);
@@ -470,6 +473,17 @@ namespace Iaonnis
         
 
         return resource->GetByteSize() <= sizeRef;
+    }
+
+    void ResourceViewer::ResetFilters()
+    {
+        dateFilter = 0;
+        sizeFilter = 0;
+        stateFilter = 0;
+
+        displayType = ResourceType::Unknown;
+
+        syncResources = true;
     }
 
     void ResourceViewer::GetResources()

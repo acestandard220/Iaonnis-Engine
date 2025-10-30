@@ -8,7 +8,6 @@ namespace Iaonnis
 {
 	class ResourceViewer : public EditorPanel
 	{
-
 		enum LayoutType
 		{
 			Grid,List
@@ -69,6 +68,7 @@ namespace Iaonnis
 		bool ApplyDateFilter(Resource* res, uint64_t dateRef);
 		bool ApplyStateFilter(Resource* resource);
 		bool ApplySizeFilter(Resource* resource, uint64_t sizeRef);
+		void ResetFilters();
 
 		void MakeResourceSelection(std::vector<std::shared_ptr<Resource>>& resources);
 
